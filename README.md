@@ -34,7 +34,7 @@ codex-hud watch
 Example output:
 
 ```text
-[gpt-5.5 medium] | codex-hud git:(main*) | Context 42% | 5h 68% | Todos 2/5 | Exec active, Plan x2
+[gpt-5.5 medium] | codex-hud git:(main*) | Context ████░░░░░░ 42% | 5h ███████░░░ 68% | Todos 2/5 | Exec active, Plan x2
 ```
 
 ## Commands
@@ -63,6 +63,7 @@ Supported MVP keys include `layout`, `refreshIntervalMs`, `pathLevels`, `display
 
 Tool activity is summarized from the most recent tool calls rather than the entire session, so long-running sessions stay readable.
 Context uses the latest token-count frame's `last_token_usage` when available, falling back to cumulative session usage only when needed.
+Progress values render as bars, with terminal colors enabled automatically for TTY output and disabled when `NO_COLOR` is set.
 
 ## Plugin Wrapper
 

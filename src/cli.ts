@@ -26,7 +26,7 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<nu
   if (command === "status") {
     const config = await loadConfig();
     const snapshot = await createHudSnapshot({ config });
-    process.stdout.write(`${renderHud({ config, snapshot })}\n`);
+    process.stdout.write(`${renderHud({ config, options: terminalRenderOptions(), snapshot })}\n`);
     return 0;
   }
 
@@ -64,7 +64,7 @@ async function runWatch(config: Awaited<ReturnType<typeof loadConfig>>): Promise
     while (!stopped) {
       const snapshot = await createHudSnapshot({ config });
       process.stdout.write("\x1Bc");
-      process.stdout.write(`${renderHud({ config, snapshot })}\n`);
+      process.stdout.write(`${renderHud({ config, options: terminalRenderOptions(), snapshot })}\n`);
       await sleep(config.refreshIntervalMs);
     }
   } finally {
@@ -75,4 +75,11 @@ async function runWatch(config: Awaited<ReturnType<typeof loadConfig>>): Promise
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function terminalRenderOptions(): { color: boolean; terminalWidth?: number } {
+  return {
+    color: process.stdout.isTTY && !process.env.NO_COLOR,
+    terminalWidth: process.stdout.columns,
+  };
 }
