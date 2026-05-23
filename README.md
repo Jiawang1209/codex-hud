@@ -57,7 +57,7 @@ Supported MVP keys include `layout`, `refreshIntervalMs`, `pathLevels`, `display
 ## Data Sources
 
 - `~/.codex/config.toml` for model and reasoning effort.
-- `~/.codex/sessions/**/*.jsonl` for token counters, rate limits, tool activity, and plan progress.
+- `~/.codex/sessions/**/*.jsonl` for token counters, rate limits, tool activity, and plan progress. Codex HUD prefers the newest session whose recorded cwd overlaps the current project.
 - `git` for branch and dirty state.
 - `codex --version` for diagnostics.
 

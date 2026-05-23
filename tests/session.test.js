@@ -99,3 +99,34 @@ test("findLatestSessionFile returns newest jsonl recursively", async () => {
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("findLatestSessionFile prefers newest session matching cwd", async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "codex-hud-sessions-"));
+  const sessionDir = path.join(dir, "2026", "05", "23");
+  await mkdir(sessionDir, { recursive: true });
+  const matching = path.join(sessionDir, "matching.jsonl");
+  const other = path.join(sessionDir, "other.jsonl");
+  await writeFile(
+    matching,
+    JSON.stringify({
+      type: "session_meta",
+      payload: { cwd: "/tmp/current-project" },
+    }) + "\n",
+    "utf8",
+  );
+  await writeFile(
+    other,
+    JSON.stringify({
+      type: "session_meta",
+      payload: { cwd: "/tmp/other-project" },
+    }) + "\n",
+    "utf8",
+  );
+
+  try {
+    const latest = await findLatestSessionFile(dir, "/tmp/current-project");
+    assert.equal(latest, matching);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

@@ -21,7 +21,7 @@ export async function createHudSnapshot(options: CreateHudSnapshotOptions): Prom
     options.git ? Promise.resolve(options.git) : readGitSnapshot(cwd),
   ]);
   const sessionSignals = options.sessionSignals
-    ?? await readLatestSessionSignals(codexInfo.codexHome ?? options.config.codexHome ?? "");
+    ?? await readLatestSessionSignals(codexInfo.codexHome ?? options.config.codexHome ?? "", cwd);
 
   return {
     model: codexInfo.model,

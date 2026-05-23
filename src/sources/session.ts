@@ -41,9 +41,9 @@ interface ToolState {
   lastIndex: number;
 }
 
-export async function readLatestSessionSignals(codexHome: string): Promise<SessionSignals> {
+export async function readLatestSessionSignals(codexHome: string, cwd?: string): Promise<SessionSignals> {
   const sessionsDir = path.join(codexHome, "sessions");
-  const latest = await findLatestSessionFile(sessionsDir);
+  const latest = await findLatestSessionFile(sessionsDir, cwd);
   if (!latest) return emptySignals();
 
   try {
@@ -123,22 +123,33 @@ export function parseSessionJsonl(text: string): SessionSignals {
   };
 }
 
-export async function findLatestSessionFile(sessionsDir: string): Promise<string | undefined> {
+export async function findLatestSessionFile(sessionsDir: string, cwd?: string): Promise<string | undefined> {
   const files = await listJsonlFiles(sessionsDir);
   if (files.length === 0) return undefined;
 
+  const targetCwd = cwd ? normalizePath(cwd) : undefined;
   let latest: { file: string; mtimeMs: number } | undefined;
+  let latestMatching: { file: string; mtimeMs: number } | undefined;
   for (const file of files) {
     try {
       const info = await stat(file);
       if (!latest || info.mtimeMs > latest.mtimeMs || (info.mtimeMs === latest.mtimeMs && file > latest.file)) {
         latest = { file, mtimeMs: info.mtimeMs };
       }
+      if (targetCwd && await sessionFileMatchesCwd(file, targetCwd)) {
+        if (
+          !latestMatching
+          || info.mtimeMs > latestMatching.mtimeMs
+          || (info.mtimeMs === latestMatching.mtimeMs && file > latestMatching.file)
+        ) {
+          latestMatching = { file, mtimeMs: info.mtimeMs };
+        }
+      }
     } catch {
       continue;
     }
   }
-  return latest?.file;
+  return latestMatching?.file ?? latest?.file;
 }
 
 function emptySignals(): SessionSignals {
@@ -245,4 +256,45 @@ function validPositiveNumber(value: unknown): value is number {
 
 function validPercent(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
+async function sessionFileMatchesCwd(file: string, targetCwd: string): Promise<boolean> {
+  const sessionCwd = await readSessionCwd(file);
+  if (!sessionCwd) return false;
+  return pathsOverlap(normalizePath(sessionCwd), targetCwd);
+}
+
+async function readSessionCwd(file: string): Promise<string | undefined> {
+  let text: string;
+  try {
+    text = await readFile(file, "utf8");
+  } catch {
+    return undefined;
+  }
+
+  for (const line of text.split(/\r?\n/).slice(0, 80)) {
+    if (!line.trim()) continue;
+    try {
+      const entry = JSON.parse(line) as { type?: string; payload?: { cwd?: unknown } };
+      if ((entry.type === "session_meta" || entry.type === "turn_context") && typeof entry.payload?.cwd === "string") {
+        return entry.payload.cwd;
+      }
+    } catch {
+      continue;
+    }
+  }
+  return undefined;
+}
+
+function normalizePath(value: string): string {
+  return path.resolve(value);
+}
+
+function pathsOverlap(sessionCwd: string, targetCwd: string): boolean {
+  return sessionCwd === targetCwd || isWithin(sessionCwd, targetCwd) || isWithin(targetCwd, sessionCwd);
+}
+
+function isWithin(candidate: string, parent: string): boolean {
+  const relative = path.relative(parent, candidate);
+  return relative.length > 0 && !relative.startsWith("..") && !path.isAbsolute(relative);
 }
