@@ -40,3 +40,30 @@ test("createHudSnapshot builds fallback snapshot from cwd", async () => {
   assert.deepEqual(snapshot.tools, []);
   assert.deepEqual(snapshot.todos, { completed: 0, total: 0 });
 });
+
+test("createHudSnapshot includes session-derived signals", async () => {
+  const snapshot = await createHudSnapshot({
+    cwd: "/tmp/codex-hud",
+    config: DEFAULT_CONFIG,
+    codexInfo: {
+      model: "gpt-5.5",
+      reasoningEffort: "medium",
+      version: "0.131.0",
+    },
+    sessionSignals: {
+      context: { label: "Context", percent: 25 },
+      usage: { label: "5h", percent: 68 },
+      tools: [{ name: "Exec", status: "completed", count: 2 }],
+      todos: { completed: 1, total: 3, current: "Parse session" },
+    },
+  });
+
+  assert.deepEqual(snapshot.context, { label: "Context", percent: 25 });
+  assert.deepEqual(snapshot.usage, { label: "5h", percent: 68 });
+  assert.deepEqual(snapshot.tools, [{ name: "Exec", status: "completed", count: 2 }]);
+  assert.deepEqual(snapshot.todos, {
+    completed: 1,
+    total: 3,
+    current: "Parse session",
+  });
+});

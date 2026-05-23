@@ -4,6 +4,8 @@ Codex HUD is a real-time heads-up display for Codex CLI and Agent CLI workflows,
 
 The first version is intentionally built as a standalone CLI core plus a Codex plugin wrapper. That makes it useful today while keeping the path open for native Codex statusline integration later.
 
+Codex HUD reads local Codex configuration, git metadata, and safe session-log metadata. It uses session event types, tool names, token counters, rate-limit counters, and plan status only; it does not need to display private message bodies.
+
 ## Install
 
 ```bash
@@ -32,7 +34,7 @@ codex-hud watch
 Example output:
 
 ```text
-[gpt-5.5 medium] | codex-hud git:(main*) | Context 42% | 5h 68% | Todos 2/5 | Bash active
+[gpt-5.5 medium] | codex-hud git:(main*) | Context 42% | 5h 68% | Todos 2/5 | Exec active, Plan x2
 ```
 
 ## Commands
@@ -51,6 +53,13 @@ Codex HUD looks for config at:
 ```
 
 Supported MVP keys include `layout`, `refreshIntervalMs`, `pathLevels`, `display`, `colors`, and `codexHome`.
+
+## Data Sources
+
+- `~/.codex/config.toml` for model and reasoning effort.
+- `~/.codex/sessions/**/*.jsonl` for token counters, rate limits, tool activity, and plan progress.
+- `git` for branch and dirty state.
+- `codex --version` for diagnostics.
 
 ## Plugin Wrapper
 

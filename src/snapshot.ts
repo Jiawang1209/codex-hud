@@ -4,12 +4,14 @@ import type { CodexInfo } from "./sources/codex.js";
 import { readCodexInfo } from "./sources/codex.js";
 import type { GitSnapshot, HudSnapshot } from "./types.js";
 import { readGitSnapshot } from "./sources/git.js";
+import { readLatestSessionSignals, type SessionSignals } from "./sources/session.js";
 
 export interface CreateHudSnapshotOptions {
   cwd?: string;
   config: HudConfig;
   codexInfo?: Partial<CodexInfo>;
   git?: GitSnapshot;
+  sessionSignals?: SessionSignals;
 }
 
 export async function createHudSnapshot(options: CreateHudSnapshotOptions): Promise<HudSnapshot> {
@@ -18,6 +20,8 @@ export async function createHudSnapshot(options: CreateHudSnapshotOptions): Prom
     options.codexInfo ? Promise.resolve(options.codexInfo) : readCodexInfo(options.config),
     options.git ? Promise.resolve(options.git) : readGitSnapshot(cwd),
   ]);
+  const sessionSignals = options.sessionSignals
+    ?? await readLatestSessionSignals(codexInfo.codexHome ?? options.config.codexHome ?? "");
 
   return {
     model: codexInfo.model,
@@ -25,8 +29,10 @@ export async function createHudSnapshot(options: CreateHudSnapshotOptions): Prom
     cwd,
     projectName: projectName(cwd, options.config.pathLevels),
     git,
-    tools: [],
-    todos: { completed: 0, total: 0 },
+    context: sessionSignals.context,
+    usage: sessionSignals.usage,
+    tools: sessionSignals.tools,
+    todos: sessionSignals.todos,
     warnings: [],
   };
 }
