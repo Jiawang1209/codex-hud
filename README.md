@@ -9,14 +9,35 @@ The first version ships with two layers:
 
 Codex HUD reads local Codex configuration, git metadata, and safe session-log metadata. It uses session event types, tool names, token counters, rate-limit counters, and plan status only; it does not need to display private message bodies.
 
-## Install
+## Install From Source
+
+Use this while Codex HUD is not published to npm yet, or when you want to test the latest GitHub version:
 
 ```bash
+git clone https://github.com/Jiawang1209/codex-hud.git
+cd codex-hud
 npm install
 npm run build
+npm link
+codex-hud install
+codex
 ```
 
-## Usage
+In this flow, `npm install` installs the project's development dependencies and `npm run build` compiles the TypeScript source into `dist/`. `npm link` makes the local `codex-hud` command available globally on your machine.
+
+`codex-hud install` prepares the native Codex HUD bundle and installs a reversible `codex` shim, so you can keep launching Codex with the normal `codex` command.
+
+## Install From npm
+
+```bash
+npm install -g @jiawang1209/codex-hud
+codex-hud install
+codex
+```
+
+This is the recommended path after the package is published to npm.
+
+## Development Usage
 
 ```bash
 node dist/index.js status
@@ -112,7 +133,7 @@ Launcher behavior:
 Recommended product install:
 
 ```bash
-npm install -g codex-hud
+npm install -g @jiawang1209/codex-hud
 codex-hud install
 codex
 ```
@@ -301,6 +322,16 @@ codex plugin add codex-hud@codex-hud-marketplace
 ```
 
 The marketplace entry uses the standard Codex plugin layout path `./plugins/codex-hud`.
+
+To install the plugin wrapper from GitHub:
+
+```bash
+codex plugin marketplace add Jiawang1209/codex-hud --ref main
+codex plugin list --marketplace codex-hud-marketplace
+codex plugin add codex-hud@codex-hud-marketplace
+```
+
+The Marketplace plugin is the Codex-side wrapper: it exposes Codex HUD guidance and diagnostics inside Codex. The terminal HUD runtime still needs the `codex-hud` CLI command from either `npm install -g @jiawang1209/codex-hud` after npm publish or the source install flow above.
 
 ## Privacy
 

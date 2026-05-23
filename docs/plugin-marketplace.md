@@ -34,7 +34,7 @@ Adjust `Jiawang1209/codex-hud` if the final GitHub owner or repository name chan
 The plugin does not replace the CLI package. It guides the user to install the product runtime:
 
 ```bash
-npm install -g codex-hud
+npm install -g @jiawang1209/codex-hud
 codex-hud install
 codex
 ```

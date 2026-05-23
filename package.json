@@ -1,5 +1,5 @@
 {
-  "name": "codex-hud",
+  "name": "@jiawang1209/codex-hud",
   "version": "0.1.0",
   "description": "Real-time terminal HUD for Codex CLI and Agent CLI sessions.",
   "type": "module",

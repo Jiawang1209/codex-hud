@@ -3,7 +3,7 @@
 ## Recommended Native HUD
 
 ```bash
-npm install -g codex-hud
+npm install -g @jiawang1209/codex-hud
 codex-hud install
 codex
 ```

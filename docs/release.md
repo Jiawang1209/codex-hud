@@ -27,7 +27,7 @@ npm publish --access public
 Install from the registry and verify the native bundle:
 
 ```bash
-npm install -g codex-hud
+npm install -g @jiawang1209/codex-hud
 codex-hud install --dry-run
 codex-hud doctor
 ```
