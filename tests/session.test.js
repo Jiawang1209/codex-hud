@@ -81,6 +81,43 @@ test("parseSessionJsonl tolerates malformed lines", () => {
   assert.deepEqual(parsed.todos, { completed: 0, total: 0 });
 });
 
+test("parseSessionJsonl summarizes only recent tool calls when limited", () => {
+  const lines = [];
+  for (let index = 0; index < 10; index += 1) {
+    lines.push(JSON.stringify({
+      type: "response_item",
+      payload: {
+        type: "function_call",
+        name: "exec_command",
+        call_id: `exec_${index}`,
+      },
+    }));
+    lines.push(JSON.stringify({
+      type: "response_item",
+      payload: {
+        type: "function_call_output",
+        call_id: `exec_${index}`,
+        output: "not used",
+      },
+    }));
+  }
+  lines.push(JSON.stringify({
+    type: "response_item",
+    payload: {
+      type: "function_call",
+      name: "update_plan",
+      call_id: "plan_1",
+    },
+  }));
+
+  const parsed = parseSessionJsonl(lines.join("\n"), { recentToolCallLimit: 3 });
+
+  assert.deepEqual(parsed.tools, [
+    { name: "Exec", status: "completed", count: 2 },
+    { name: "Plan", status: "active", count: 1 },
+  ]);
+});
+
 test("findLatestSessionFile returns newest jsonl recursively", async () => {
   const dir = await mkdtemp(path.join(tmpdir(), "codex-hud-sessions-"));
   const olderDir = path.join(dir, "2026", "05", "22");

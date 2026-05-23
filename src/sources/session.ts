@@ -9,6 +9,12 @@ export interface SessionSignals {
   todos: TodoSnapshot;
 }
 
+export interface ParseSessionOptions {
+  recentToolCallLimit?: number;
+}
+
+const DEFAULT_RECENT_TOOL_CALL_LIMIT = 12;
+
 interface RolloutLine {
   type?: string;
   payload?: {
@@ -53,7 +59,7 @@ export async function readLatestSessionSignals(codexHome: string, cwd?: string):
   }
 }
 
-export function parseSessionJsonl(text: string): SessionSignals {
+export function parseSessionJsonl(text: string, options: ParseSessionOptions = {}): SessionSignals {
   const toolsByCall = new Map<string, ToolState>();
   let context: ProgressSnapshot | undefined;
   let usage: ProgressSnapshot | undefined;
@@ -118,7 +124,7 @@ export function parseSessionJsonl(text: string): SessionSignals {
   return {
     context,
     usage,
-    tools: summarizeTools(toolsByCall),
+    tools: summarizeTools(toolsByCall, normalizeRecentLimit(options.recentToolCallLimit)),
     todos,
   };
 }
@@ -186,9 +192,13 @@ function isCompletionPayload(type: string | undefined): boolean {
     || type === "patch_apply_end";
 }
 
-function summarizeTools(toolsByCall: Map<string, ToolState>): ToolActivity[] {
+function summarizeTools(toolsByCall: Map<string, ToolState>, recentToolCallLimit: number): ToolActivity[] {
   const byName = new Map<string, { active: number; completed: number; lastIndex: number }>();
-  for (const tool of toolsByCall.values()) {
+  const recentTools = Array.from(toolsByCall.values())
+    .sort((a, b) => b.lastIndex - a.lastIndex)
+    .slice(0, recentToolCallLimit);
+
+  for (const tool of recentTools) {
     const current = byName.get(tool.name) ?? { active: 0, completed: 0, lastIndex: 0 };
     if (tool.status === "active") current.active += 1;
     else current.completed += 1;
@@ -205,6 +215,13 @@ function summarizeTools(toolsByCall: Map<string, ToolState>): ToolActivity[] {
       status: counts.active > 0 ? "active" : "completed",
       count: counts.active + counts.completed,
     }));
+}
+
+function normalizeRecentLimit(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+    return DEFAULT_RECENT_TOOL_CALL_LIMIT;
+  }
+  return Math.min(value, 100);
 }
 
 function parseUpdatePlanTodos(argumentsJson: string | undefined): TodoSnapshot | undefined {

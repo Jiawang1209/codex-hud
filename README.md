@@ -61,6 +61,8 @@ Supported MVP keys include `layout`, `refreshIntervalMs`, `pathLevels`, `display
 - `git` for branch and dirty state.
 - `codex --version` for diagnostics.
 
+Tool activity is summarized from the most recent tool calls rather than the entire session, so long-running sessions stay readable.
+
 ## Plugin Wrapper
 
 The repository includes `.codex-plugin/plugin.json` and `skills/codex-hud/SKILL.md`. The plugin wrapper documents how to use the CLI today and gives us a clean place to add native Codex statusline support if Codex exposes a command-backed provider API.
