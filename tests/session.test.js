@@ -74,6 +74,24 @@ test("parseSessionJsonl extracts context, usage, tools, and todos without readin
   ]);
 });
 
+test("parseSessionJsonl uses last token usage for context before cumulative session usage", () => {
+  const text = JSON.stringify({
+    type: "event_msg",
+    payload: {
+      type: "token_count",
+      info: {
+        total_token_usage: { total_tokens: 800000 },
+        last_token_usage: { total_tokens: 50000 },
+        model_context_window: 200000,
+      },
+    },
+  });
+
+  const parsed = parseSessionJsonl(text);
+
+  assert.deepEqual(parsed.context, { label: "Context", percent: 25 });
+});
+
 test("parseSessionJsonl tolerates malformed lines", () => {
   const parsed = parseSessionJsonl("{not-json\n\n");
 

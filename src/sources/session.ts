@@ -26,6 +26,9 @@ interface RolloutLine {
       total_token_usage?: {
         total_tokens?: number;
       };
+      last_token_usage?: {
+        total_tokens?: number;
+      };
       model_context_window?: number;
     };
     rate_limits?: {
@@ -102,12 +105,13 @@ export function parseSessionJsonl(text: string, options: ParseSessionOptions = {
     }
 
     if (payload.type === "token_count") {
-      const totalTokens = payload.info?.total_token_usage?.total_tokens;
+      const totalTokens = payload.info?.last_token_usage?.total_tokens
+        ?? payload.info?.total_token_usage?.total_tokens;
       const contextWindow = payload.info?.model_context_window;
       if (validPositiveNumber(totalTokens) && validPositiveNumber(contextWindow)) {
         context = {
           label: "Context",
-          percent: Math.round((totalTokens / contextWindow) * 100),
+          percent: clampPercent(Math.round((totalTokens / contextWindow) * 100)),
         };
       }
 
@@ -273,6 +277,10 @@ function validPositiveNumber(value: unknown): value is number {
 
 function validPercent(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
+function clampPercent(value: number): number {
+  return Math.min(100, Math.max(0, value));
 }
 
 async function sessionFileMatchesCwd(file: string, targetCwd: string): Promise<boolean> {

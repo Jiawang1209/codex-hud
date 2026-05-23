@@ -62,6 +62,7 @@ Supported MVP keys include `layout`, `refreshIntervalMs`, `pathLevels`, `display
 - `codex --version` for diagnostics.
 
 Tool activity is summarized from the most recent tool calls rather than the entire session, so long-running sessions stay readable.
+Context uses the latest token-count frame's `last_token_usage` when available, falling back to cumulative session usage only when needed.
 
 ## Plugin Wrapper
 
