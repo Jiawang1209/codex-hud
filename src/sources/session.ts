@@ -5,6 +5,7 @@ import type { ProgressSnapshot, TodoSnapshot, ToolActivity } from "../types.js";
 export interface SessionSignals {
   context?: ProgressSnapshot;
   usage?: ProgressSnapshot;
+  weekly?: ProgressSnapshot;
   tools: ToolActivity[];
   todos: TodoSnapshot;
 }
@@ -66,6 +67,7 @@ export function parseSessionJsonl(text: string, options: ParseSessionOptions = {
   const toolsByCall = new Map<string, ToolState>();
   let context: ProgressSnapshot | undefined;
   let usage: ProgressSnapshot | undefined;
+  let weekly: ProgressSnapshot | undefined;
   let todos: TodoSnapshot = { completed: 0, total: 0 };
   let lineIndex = 0;
 
@@ -120,6 +122,19 @@ export function parseSessionJsonl(text: string, options: ParseSessionOptions = {
         usage = {
           label: formatRateLimitWindow(primary?.window_minutes),
           percent: primary.used_percent,
+          windowMinutes: validPositiveNumber(primary?.window_minutes) ? primary.window_minutes : undefined,
+        };
+      }
+
+      const secondary = payload.rate_limits?.secondary;
+      if (validPercent(secondary?.used_percent)) {
+        const windowMinutes = validPositiveNumber(secondary?.window_minutes)
+          ? secondary.window_minutes
+          : undefined;
+        weekly = {
+          label: "Weekly",
+          percent: secondary.used_percent,
+          windowMinutes,
         };
       }
     }
@@ -128,6 +143,7 @@ export function parseSessionJsonl(text: string, options: ParseSessionOptions = {
   return {
     context,
     usage,
+    weekly,
     tools: summarizeTools(toolsByCall, normalizeRecentLimit(options.recentToolCallLimit)),
     todos,
   };

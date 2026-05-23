@@ -5,7 +5,7 @@ import { DEFAULT_CONFIG } from "../dist/config.js";
 
 test("renderHud renders compact snapshot with core signals", () => {
   const output = renderHud({
-    config: DEFAULT_CONFIG,
+    config: { ...DEFAULT_CONFIG, layout: "compact" },
     snapshot: {
       model: "gpt-5.5",
       reasoningEffort: "medium",
@@ -19,6 +19,7 @@ test("renderHud renders compact snapshot with core signals", () => {
       },
       context: { label: "Context", percent: 42 },
       usage: { label: "5h", percent: 68 },
+      weekly: { label: "Weekly", percent: 86 },
       tools: [
         { name: "Bash", status: "active" },
         { name: "Edit", status: "completed", count: 2 },
@@ -30,7 +31,7 @@ test("renderHud renders compact snapshot with core signals", () => {
 
   assert.equal(
     output,
-    "[gpt-5.5 medium] | codex-hud git:(main*) | Context ████░░░░░░ 42% | 5h ███████░░░ 68% | Todos 2/5 | Bash active, Edit x2",
+    "[gpt-5.5 medium] | codex-hud git:(main*) | Context ████░░░░░░ 42% | 5h ███████░░░ 68% | Weekly █████████░ 86% | Todos 2/5 | Bash active, Edit x2",
   );
 });
 
@@ -38,21 +39,71 @@ test("renderHud renders expanded snapshot across multiple lines", () => {
   const output = renderHud({
     config: { ...DEFAULT_CONFIG, layout: "expanded" },
     snapshot: {
-      model: "gpt-5.5",
+      model: "Opus",
       cwd: "/tmp/codex-hud",
-      projectName: "codex-hud",
+      projectName: "my-project",
+      git: {
+        branch: "main",
+        isDirty: true,
+        ahead: 0,
+        behind: 0,
+      },
+      context: { label: "Context", percent: 45 },
+      usage: { label: "5h", percent: 25, windowMinutes: 300 },
+      weekly: { label: "Weekly", percent: 86, windowMinutes: 10080 },
       tools: [],
       todos: { completed: 0, total: 0 },
       warnings: [],
     },
   });
 
-  assert.equal(output, "[gpt-5.5] | codex-hud");
+  assert.equal(
+    output,
+    "[Opus] │ my-project git:(main*)\nContext █████░░░░░ 45% │ Usage ███░░░░░░░ 25% (1h 15m / 5h) │ Weekly █████████░ 86%",
+  );
+});
+
+test("renderHud respects element order and visibility config", () => {
+  const output = renderHud({
+    config: {
+      ...DEFAULT_CONFIG,
+      layout: "compact",
+      lineLayout: "compact",
+      elementOrder: ["project", "weekly", "context"],
+      display: {
+        ...DEFAULT_CONFIG.display,
+        showModel: false,
+        showGit: false,
+        showUsage: false,
+        showTools: false,
+        showTodos: false,
+      },
+    },
+    snapshot: {
+      model: "gpt-5.5",
+      cwd: "/tmp/codex-hud",
+      projectName: "codex-hud",
+      git: {
+        branch: "main",
+        isDirty: true,
+        ahead: 0,
+        behind: 0,
+      },
+      context: { label: "Context", percent: 42 },
+      usage: { label: "5h", percent: 68 },
+      weekly: { label: "Weekly", percent: 86 },
+      tools: [{ name: "Exec", status: "active" }],
+      todos: { completed: 2, total: 5 },
+      warnings: [],
+    },
+  });
+
+  assert.equal(output, "codex-hud | Weekly █████████░ 86% | Context ████░░░░░░ 42%");
 });
 
 test("renderHud can color progress bars", () => {
   const output = renderHud({
-    config: DEFAULT_CONFIG,
+    config: { ...DEFAULT_CONFIG, layout: "compact" },
     options: { color: true },
     snapshot: {
       cwd: "/tmp/codex-hud",
@@ -65,12 +116,13 @@ test("renderHud can color progress bars", () => {
   });
 
   assert.match(output, /\x1b\[/);
+  assert.match(output, /\x1b\[(35|33|32)m/);
   assert.match(output, /Context/);
 });
 
 test("renderHud truncates compact output to terminal width", () => {
   const output = renderHud({
-    config: DEFAULT_CONFIG,
+    config: { ...DEFAULT_CONFIG, layout: "compact" },
     options: { terminalWidth: 42 },
     snapshot: {
       model: "gpt-5.5",

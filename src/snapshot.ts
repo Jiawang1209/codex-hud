@@ -31,6 +31,7 @@ export async function createHudSnapshot(options: CreateHudSnapshotOptions): Prom
     git,
     context: sessionSignals.context,
     usage: sessionSignals.usage,
+    weekly: sessionSignals.weekly,
     tools: sessionSignals.tools,
     todos: sessionSignals.todos,
     warnings: [],

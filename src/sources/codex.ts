@@ -4,6 +4,7 @@ import path from "node:path";
 import os from "node:os";
 import { promisify } from "node:util";
 import type { HudConfig } from "../config.js";
+import { defaultShimBinDir, resolveNativeCodexPath } from "../native-runner.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -22,6 +23,21 @@ export interface DoctorReport {
     path?: string;
     version?: string;
   };
+  codexHud: {
+    found: boolean;
+    path?: string;
+  };
+  codexShim: {
+    installed: boolean;
+    path: string;
+  };
+  patchedCodex: {
+    found: boolean;
+    path: string;
+  };
+  nativeStatusCommand: {
+    configured: boolean;
+  };
   codexHome: string;
   lines: string[];
 }
@@ -29,7 +45,11 @@ export interface DoctorReport {
 export interface DoctorDeps {
   resolveCodexPath?: () => Promise<string | undefined>;
   readCodexVersion?: () => Promise<string | undefined>;
+  resolveCodexHudPath?: () => Promise<string | undefined>;
   codexHome?: string;
+  shimPath?: string;
+  readTextFile?: (target: string) => Promise<string | undefined>;
+  pathExists?: (target: string) => Promise<boolean>;
 }
 
 export function getCodexHome(config?: HudConfig): string {
@@ -56,6 +76,18 @@ export async function readCodexInfo(config?: HudConfig): Promise<CodexInfo> {
 export async function resolveCodexPath(): Promise<string | undefined> {
   try {
     const { stdout } = await execFileAsync("sh", ["-c", "command -v codex"], {
+      timeout: 1000,
+      encoding: "utf8",
+    });
+    return stdout.trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function resolveCodexHudPath(): Promise<string | undefined> {
+  try {
+    const { stdout } = await execFileAsync("sh", ["-c", "command -v codex-hud"], {
       timeout: 1000,
       encoding: "utf8",
     });
@@ -92,14 +124,42 @@ export function parseCodexConfigText(text: string): Pick<CodexInfo, "model" | "r
 export async function createDoctorReport(deps: DoctorDeps = {}): Promise<DoctorReport> {
   const codexHome = deps.codexHome ?? getCodexHome();
   const codexPath = await (deps.resolveCodexPath ?? resolveCodexPath)();
+  const codexHudPath = await (deps.resolveCodexHudPath ?? resolveCodexHudPath)();
   const version = codexPath ? await (deps.readCodexVersion ?? readCodexVersion)() : undefined;
-  const homeExists = await pathExists(codexHome);
+  const exists = deps.pathExists ?? pathExists;
+  const homeExists = await exists(codexHome);
+  const shimPath = deps.shimPath ?? path.join(defaultShimBinDir(), "codex");
+  const shimText = await (deps.readTextFile ?? readOptionalText)(shimPath);
+  const shimInstalled = Boolean(shimText?.includes("codex-hud shim"));
+  const patchedCodexPath = parseShimCodexPath(shimText) ?? resolveNativeCodexPath();
+  const patchedCodexFound = await exists(patchedCodexPath);
+  const nativeStatusCommandConfigured = Boolean(shimText?.includes("codex-hud native"));
   const lines: string[] = [];
 
   if (codexPath) {
     lines.push(`Codex CLI: ${version ?? "found"} (${codexPath})`);
   } else {
     lines.push("Codex CLI: not found");
+  }
+  if (codexHudPath) {
+    lines.push(`codex-hud binary found (${codexHudPath})`);
+  } else {
+    lines.push("codex-hud binary: not found");
+  }
+  if (shimInstalled) {
+    lines.push(`codex shim installed at ${shimPath}`);
+  } else {
+    lines.push(`codex shim: not installed at ${shimPath}`);
+  }
+  if (patchedCodexFound) {
+    lines.push(`patched Codex found at ${patchedCodexPath}`);
+  } else {
+    lines.push(`patched Codex: not found at ${patchedCodexPath}`);
+  }
+  if (nativeStatusCommandConfigured) {
+    lines.push("native status command configured");
+  } else {
+    lines.push("native status command: not configured");
   }
   lines.push(`Codex home: ${homeExists ? codexHome : `${codexHome} (missing)`}`);
   lines.push(`Node.js: ${process.version}`);
@@ -111,9 +171,38 @@ export async function createDoctorReport(deps: DoctorDeps = {}): Promise<DoctorR
       path: codexPath,
       version,
     },
+    codexHud: {
+      found: Boolean(codexHudPath),
+      path: codexHudPath,
+    },
+    codexShim: {
+      installed: shimInstalled,
+      path: shimPath,
+    },
+    patchedCodex: {
+      found: patchedCodexFound,
+      path: patchedCodexPath,
+    },
+    nativeStatusCommand: {
+      configured: nativeStatusCommandConfigured,
+    },
     codexHome,
     lines,
   };
+}
+
+async function readOptionalText(target: string): Promise<string | undefined> {
+  try {
+    return await readFile(target, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+function parseShimCodexPath(text: string | undefined): string | undefined {
+  if (!text) return undefined;
+  const match = text.match(/--codex\s+(?:"([^"]+)"|'([^']+)'|([^\s]+))/);
+  return match?.[1] ?? match?.[2] ?? match?.[3];
 }
 
 async function readCodexConfigText(codexHome: string): Promise<string | undefined> {

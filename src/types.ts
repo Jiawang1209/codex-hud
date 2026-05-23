@@ -1,6 +1,7 @@
 export interface ProgressSnapshot {
   label: string;
   percent: number;
+  windowMinutes?: number;
 }
 
 export interface GitSnapshot {
@@ -39,6 +40,7 @@ export interface HudSnapshot {
   git?: GitSnapshot;
   context?: ProgressSnapshot;
   usage?: ProgressSnapshot;
+  weekly?: ProgressSnapshot;
   tools: ToolActivity[];
   todos: TodoSnapshot;
   session?: SessionSnapshot;

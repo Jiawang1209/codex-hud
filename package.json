@@ -9,12 +9,19 @@
   "files": [
     "dist/",
     ".codex-plugin/",
+    "plugins/",
+    "patches/",
+    "docs/",
     "skills/",
+    "CHANGELOG.md",
+    "LICENSE",
     "README.md"
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node --test"
+    "test": "npm run build && node --test",
+    "prepack": "npm run build",
+    "pack:check": "npm test && npm pack --dry-run"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -52,14 +52,16 @@ test("createHudSnapshot includes session-derived signals", async () => {
     },
     sessionSignals: {
       context: { label: "Context", percent: 25 },
-      usage: { label: "5h", percent: 68 },
+      usage: { label: "5h", percent: 68, windowMinutes: 300 },
+      weekly: { label: "Weekly", percent: 86, windowMinutes: 10080 },
       tools: [{ name: "Exec", status: "completed", count: 2 }],
       todos: { completed: 1, total: 3, current: "Parse session" },
     },
   });
 
   assert.deepEqual(snapshot.context, { label: "Context", percent: 25 });
-  assert.deepEqual(snapshot.usage, { label: "5h", percent: 68 });
+  assert.deepEqual(snapshot.usage, { label: "5h", percent: 68, windowMinutes: 300 });
+  assert.deepEqual(snapshot.weekly, { label: "Weekly", percent: 86, windowMinutes: 10080 });
   assert.deepEqual(snapshot.tools, [{ name: "Exec", status: "completed", count: 2 }]);
   assert.deepEqual(snapshot.todos, {
     completed: 1,

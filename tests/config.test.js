@@ -13,38 +13,59 @@ import {
 test("mergeConfig returns defaults for empty input", () => {
   const config = mergeConfig({});
 
-  assert.equal(config.layout, "compact");
+  assert.equal(config.layout, "expanded");
+  assert.equal(config.lineLayout, "expanded");
+  assert.equal(config.language, "en");
   assert.equal(config.refreshIntervalMs, 1000);
   assert.equal(config.pathLevels, 1);
-  assert.equal(config.display.model, true);
-  assert.equal(config.display.git, true);
+  assert.deepEqual(config.elementOrder, DEFAULT_CONFIG.elementOrder);
+  assert.equal(config.gitStatus.enabled, true);
+  assert.equal(config.display.showModel, true);
+  assert.equal(config.display.showGit, true);
 });
 
 test("mergeConfig preserves valid user values", () => {
   const config = mergeConfig({
-    layout: "expanded",
+    language: "zh",
+    lineLayout: "compact",
     refreshIntervalMs: 300,
     pathLevels: 3,
     codexHome: "/tmp/codex-home",
+    elementOrder: ["project", "context", "weekly"],
+    gitStatus: {
+      enabled: false,
+      showDirty: false,
+      showAheadBehind: true,
+    },
     display: {
       usage: false,
+      showWeekly: false,
       tools: false,
     },
     colors: {
-      barFilled: "#",
-      barEmpty: "-",
+      model: "cyan",
+      project: "yellow",
+      custom: "#FF6600",
     },
   });
 
-  assert.equal(config.layout, "expanded");
+  assert.equal(config.layout, "compact");
+  assert.equal(config.lineLayout, "compact");
+  assert.equal(config.language, "zh");
   assert.equal(config.refreshIntervalMs, 300);
   assert.equal(config.pathLevels, 3);
   assert.equal(config.codexHome, "/tmp/codex-home");
-  assert.equal(config.display.usage, false);
-  assert.equal(config.display.tools, false);
-  assert.equal(config.display.model, DEFAULT_CONFIG.display.model);
-  assert.equal(config.colors.barFilled, "#");
-  assert.equal(config.colors.barEmpty, "-");
+  assert.deepEqual(config.elementOrder, ["project", "context", "weekly"]);
+  assert.equal(config.gitStatus.enabled, false);
+  assert.equal(config.gitStatus.showDirty, false);
+  assert.equal(config.gitStatus.showAheadBehind, true);
+  assert.equal(config.display.showUsage, false);
+  assert.equal(config.display.showWeekly, false);
+  assert.equal(config.display.showTools, false);
+  assert.equal(config.display.showModel, DEFAULT_CONFIG.display.showModel);
+  assert.equal(config.colors.model, "cyan");
+  assert.equal(config.colors.project, "yellow");
+  assert.equal(config.colors.custom, "#FF6600");
 });
 
 test("mergeConfig rejects invalid values", () => {
@@ -61,9 +82,11 @@ test("mergeConfig rejects invalid values", () => {
   });
 
   assert.equal(config.layout, DEFAULT_CONFIG.layout);
+  assert.equal(config.lineLayout, DEFAULT_CONFIG.lineLayout);
   assert.equal(config.refreshIntervalMs, DEFAULT_CONFIG.refreshIntervalMs);
   assert.equal(config.pathLevels, DEFAULT_CONFIG.pathLevels);
-  assert.equal(config.display.model, DEFAULT_CONFIG.display.model);
+  assert.deepEqual(config.elementOrder, DEFAULT_CONFIG.elementOrder);
+  assert.equal(config.display.showModel, DEFAULT_CONFIG.display.showModel);
   assert.equal(config.colors.barFilled, DEFAULT_CONFIG.colors.barFilled);
 });
 
