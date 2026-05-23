@@ -9,9 +9,21 @@ The first version ships with two layers:
 
 Codex HUD reads local Codex configuration, git metadata, and safe session-log metadata. It uses session event types, tool names, token counters, rate-limit counters, and plan status only; it does not need to display private message bodies.
 
+## Install
+
+Install the published package from npm:
+
+```bash
+npm install -g @jiawang1209/codex-hud
+codex-hud install
+codex
+```
+
+`codex-hud install` prepares the native Codex HUD bundle and installs a reversible `codex` shim, so you can keep launching Codex with the normal `codex` command.
+
 ## Install From Source
 
-Use this while Codex HUD is not published to npm yet, or when you want to test the latest GitHub version:
+Use this when you want to test the latest GitHub version:
 
 ```bash
 git clone https://github.com/Jiawang1209/codex-hud.git
@@ -24,18 +36,6 @@ codex
 ```
 
 In this flow, `npm install` installs the project's development dependencies and `npm run build` compiles the TypeScript source into `dist/`. `npm link` makes the local `codex-hud` command available globally on your machine.
-
-`codex-hud install` prepares the native Codex HUD bundle and installs a reversible `codex` shim, so you can keep launching Codex with the normal `codex` command.
-
-## Install From npm
-
-```bash
-npm install -g @jiawang1209/codex-hud
-codex-hud install
-codex
-```
-
-This is the recommended path after the package is published to npm.
 
 ## Development Usage
 
@@ -162,19 +162,6 @@ That native launcher starts the patched Codex binary with:
 
 ```bash
 -c 'tui.status_line=["command: codex-hud status"]'
-```
-
-For this development machine, the current patched binary is:
-
-```bash
-/Users/liuyue/Desktop/Github_repos/openai-codex/codex-rs/target/debug/codex
-```
-
-Install the local shim with:
-
-```bash
-codex-hud install-shim \
-  --codex /Users/liuyue/Desktop/Github_repos/openai-codex/codex-rs/target/debug/codex
 ```
 
 Remove it and return to the official `codex` command with:

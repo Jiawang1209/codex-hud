@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Clarify npm, source, and Marketplace installation paths in the README.
+- Normalize the npm binary path generated during publish.
+
 ## 0.1.0
 
 - Add Codex HUD CLI with `status`, `watch`, `doctor`, `config`, `setup`, `run`, `native`, and shim commands.
