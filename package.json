@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Real-time terminal HUD for Codex CLI and Agent CLI sessions.",
   "type": "module",
+  "homepage": "https://github.com/Jiawang1209/codex-hud",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jiawang1209/codex-hud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Jiawang1209/codex-hud/issues"
+  },
   "bin": {
     "codex-hud": "./dist/index.js"
   },

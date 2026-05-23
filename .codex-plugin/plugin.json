@@ -4,10 +4,10 @@
   "description": "Real-time terminal HUD for Codex CLI sessions: context, tools, todos, git status, and session activity at a glance.",
   "author": {
     "name": "Codex HUD contributors",
-    "url": "https://github.com/liuyue/codex-hud"
+    "url": "https://github.com/Jiawang1209/codex-hud"
   },
-  "homepage": "https://github.com/liuyue/codex-hud",
-  "repository": "https://github.com/liuyue/codex-hud",
+  "homepage": "https://github.com/Jiawang1209/codex-hud",
+  "repository": "https://github.com/Jiawang1209/codex-hud",
   "license": "MIT",
   "keywords": [
     "codex",
@@ -27,9 +27,9 @@
     "capabilities": [
       "Read"
     ],
-    "websiteURL": "https://github.com/liuyue/codex-hud",
-    "privacyPolicyURL": "https://github.com/liuyue/codex-hud#privacy",
-    "termsOfServiceURL": "https://github.com/liuyue/codex-hud#license",
+    "websiteURL": "https://github.com/Jiawang1209/codex-hud",
+    "privacyPolicyURL": "https://github.com/Jiawang1209/codex-hud#privacy",
+    "termsOfServiceURL": "https://github.com/Jiawang1209/codex-hud#license",
     "brandColor": "#10A37F",
     "defaultPrompt": [
       "Use Codex HUD to inspect my current Codex CLI environment",

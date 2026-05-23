@@ -23,11 +23,11 @@ The marketplace entry points at:
 When this repository is published, users should be able to add the marketplace from the GitHub repository:
 
 ```bash
-codex plugin marketplace add liuyue/codex-hud --ref main
+codex plugin marketplace add Jiawang1209/codex-hud --ref main
 codex plugin add codex-hud@codex-hud-marketplace
 ```
 
-Adjust `liuyue/codex-hud` if the final GitHub owner or repository name changes.
+Adjust `Jiawang1209/codex-hud` if the final GitHub owner or repository name changes.
 
 ## Product Install From Plugin
 
