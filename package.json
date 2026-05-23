@@ -1,0 +1,41 @@
+{
+  "name": "codex-hud",
+  "version": "0.1.0",
+  "description": "Real-time terminal HUD for Codex CLI and Agent CLI sessions.",
+  "type": "module",
+  "bin": {
+    "codex-hud": "./dist/index.js"
+  },
+  "files": [
+    "dist/",
+    ".codex-plugin/",
+    "plugins/",
+    "patches/",
+    "docs/",
+    "skills/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test",
+    "prepack": "npm run build",
+    "pack:check": "npm test && npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "codex",
+    "codex-cli",
+    "hud",
+    "statusline",
+    "terminal"
+  ],
+  "license": "MIT"
+}
