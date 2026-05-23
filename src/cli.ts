@@ -43,10 +43,36 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<nu
   }
 
   if (command === "watch") {
-    process.stdout.write("codex-hud: watch command is not implemented yet\n");
+    const config = await loadConfig();
+    await runWatch(config);
     return 0;
   }
 
   process.stderr.write(`codex-hud: unknown command '${command}'\n`);
   return 1;
+}
+
+async function runWatch(config: Awaited<ReturnType<typeof loadConfig>>): Promise<void> {
+  let stopped = false;
+  const stop = (): void => {
+    stopped = true;
+  };
+  process.once("SIGINT", stop);
+  process.once("SIGTERM", stop);
+
+  try {
+    while (!stopped) {
+      const snapshot = await createHudSnapshot({ config });
+      process.stdout.write("\x1Bc");
+      process.stdout.write(`${renderHud({ config, snapshot })}\n`);
+      await sleep(config.refreshIntervalMs);
+    }
+  } finally {
+    process.off("SIGINT", stop);
+    process.off("SIGTERM", stop);
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
