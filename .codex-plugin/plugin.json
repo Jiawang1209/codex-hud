@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "Real-time terminal HUD for Codex CLI sessions: context, tools, todos, git status, and session activity at a glance.",
   "author": {
-    "name": "Codex HUD contributors"
+    "name": "Codex HUD contributors",
+    "url": "https://github.com/liuyue/codex-hud"
   },
   "homepage": "https://github.com/liuyue/codex-hud",
   "repository": "https://github.com/liuyue/codex-hud",
@@ -27,6 +28,8 @@
       "Read"
     ],
     "websiteURL": "https://github.com/liuyue/codex-hud",
+    "privacyPolicyURL": "https://github.com/liuyue/codex-hud#privacy",
+    "termsOfServiceURL": "https://github.com/liuyue/codex-hud#license",
     "brandColor": "#10A37F",
     "defaultPrompt": [
       "Use Codex HUD to inspect my current Codex CLI environment",

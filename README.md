@@ -77,3 +77,29 @@ Progress values render as bars, with terminal colors enabled automatically for T
 ## Plugin Wrapper
 
 The repository includes `.codex-plugin/plugin.json` and `skills/codex-hud/SKILL.md`. The plugin wrapper documents how to use the CLI today and gives us a clean place to add native Codex statusline support if Codex exposes a command-backed provider API.
+
+## Marketplace
+
+This repository includes a local marketplace snapshot at:
+
+```text
+.agents/plugins/marketplace.json
+```
+
+For local testing, add the marketplace snapshot from this repository and install `codex-hud` from it with Codex plugin commands.
+
+```bash
+codex plugin marketplace add /path/to/codex-hud
+codex plugin list --marketplace codex-hud-marketplace
+codex plugin add codex-hud@codex-hud-marketplace
+```
+
+The marketplace entry uses the standard Codex plugin layout path `./plugins/codex-hud`.
+
+## Privacy
+
+Codex HUD reads local Codex configuration, local Codex session metadata, and local git metadata. It does not upload data.
+
+## License
+
+MIT
