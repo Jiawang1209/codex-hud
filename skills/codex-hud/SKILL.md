@@ -17,6 +17,7 @@ npm run build
 node dist/index.js status
 node dist/index.js doctor
 node dist/index.js config
+node dist/index.js config init
 node dist/index.js watch
 ```
 
@@ -26,6 +27,7 @@ After package installation, use:
 codex-hud status
 codex-hud doctor
 codex-hud config
+codex-hud config init
 codex-hud watch
 ```
 

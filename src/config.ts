@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 
@@ -59,6 +59,16 @@ export async function loadConfig(configPath?: string): Promise<HudConfig> {
   } catch {
     return mergeConfig({});
   }
+}
+
+export async function writeDefaultConfig(configPath?: string): Promise<string> {
+  const resolvedPath = resolveConfigPath(configPath);
+  await mkdir(path.dirname(resolvedPath), { recursive: true });
+  await writeFile(resolvedPath, `${JSON.stringify(DEFAULT_CONFIG, null, 2)}\n`, {
+    encoding: "utf8",
+    flag: "wx",
+  });
+  return resolvedPath;
 }
 
 export function mergeConfig(input: JsonObject): HudConfig {

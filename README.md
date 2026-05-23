@@ -19,6 +19,7 @@ npm run build
 node dist/index.js status
 node dist/index.js doctor
 node dist/index.js config
+node dist/index.js config init
 node dist/index.js watch
 ```
 
@@ -28,6 +29,7 @@ When installed as a package, the binary is:
 codex-hud status
 codex-hud doctor
 codex-hud config
+codex-hud config init
 codex-hud watch
 ```
 
@@ -43,6 +45,7 @@ Example output:
 - `watch`: refresh the HUD until interrupted.
 - `doctor`: check Codex CLI, Codex home, and Node.js readiness.
 - `config`: print the effective Codex HUD configuration.
+- `config init`: create `~/.codex-hud/config.json` with default settings.
 
 ## Configuration
 
@@ -53,6 +56,12 @@ Codex HUD looks for config at:
 ```
 
 Supported MVP keys include `layout`, `refreshIntervalMs`, `pathLevels`, `display`, `colors`, and `codexHome`.
+
+Initialize the config file with:
+
+```bash
+codex-hud config init
+```
 
 ## Data Sources
 

@@ -1,4 +1,4 @@
-import { loadConfig } from "./config.js";
+import { loadConfig, writeDefaultConfig } from "./config.js";
 import { renderHud } from "./render.js";
 import { createHudSnapshot } from "./snapshot.js";
 import { createDoctorReport } from "./sources/codex.js";
@@ -10,6 +10,7 @@ Usage:
   codex-hud watch     Refresh HUD snapshots until interrupted
   codex-hud doctor    Check Codex HUD runtime readiness
   codex-hud config    Print effective configuration
+  codex-hud config init [--path <file>]
 
 Options:
   -h, --help          Show this help
@@ -37,6 +38,9 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<nu
   }
 
   if (command === "config") {
+    if (argv[1] === "init") {
+      return await runConfigInit(argv.slice(2));
+    }
     const config = await loadConfig();
     process.stdout.write(`${JSON.stringify(config, null, 2)}\n`);
     return 0;
@@ -50,6 +54,29 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<nu
 
   process.stderr.write(`codex-hud: unknown command '${command}'\n`);
   return 1;
+}
+
+async function runConfigInit(args: string[]): Promise<number> {
+  const configPath = parsePathArg(args);
+  try {
+    const writtenPath = await writeDefaultConfig(configPath);
+    process.stdout.write(`codex-hud: created ${writtenPath}\n`);
+    return 0;
+  } catch (error) {
+    const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
+    if (code === "EEXIST") {
+      process.stderr.write(`codex-hud: config already exists${configPath ? ` at ${configPath}` : ""}\n`);
+      return 1;
+    }
+    process.stderr.write(`codex-hud: failed to create config\n`);
+    return 1;
+  }
+}
+
+function parsePathArg(args: string[]): string | undefined {
+  const index = args.indexOf("--path");
+  if (index === -1) return undefined;
+  return args[index + 1];
 }
 
 async function runWatch(config: Awaited<ReturnType<typeof loadConfig>>): Promise<void> {
