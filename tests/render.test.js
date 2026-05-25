@@ -19,7 +19,7 @@ test("renderHud renders compact snapshot with core signals", () => {
       },
       context: { label: "Context", percent: 42 },
       usage: { label: "5h", percent: 68 },
-      weekly: { label: "Weekly", percent: 86 },
+      weekly: { label: "Weekly", percent: 86, windowMinutes: 10080 },
       tools: [
         { name: "Bash", status: "active" },
         { name: "Edit", status: "completed", count: 2 },
@@ -31,7 +31,7 @@ test("renderHud renders compact snapshot with core signals", () => {
 
   assert.equal(
     output,
-    "[gpt-5.5 medium] | codex-hud git:(main*) | Context ████░░░░░░ 42% | 5h ███████░░░ 68% | Weekly █████████░ 86% | Todos 2/5 | Bash active, Edit x2",
+    "[gpt-5.5 medium] | codex-hud git:(main*) | Context ████░░░░░░ 42% | 5h ███████░░░ 68% | Weekly █████████░ 86% (6d 29m / 7d) | Todos 2/5 | Bash active, Edit x2",
   );
 });
 
@@ -59,7 +59,7 @@ test("renderHud renders expanded snapshot across multiple lines", () => {
 
   assert.equal(
     output,
-    "[Opus] │ my-project git:(main*)\nContext █████░░░░░ 45% │ Usage ███░░░░░░░ 25% (1h 15m / 5h) │ Weekly █████████░ 86%",
+    "[Opus] │ my-project git:(main*)\nContext █████░░░░░ 45% │ Usage ███░░░░░░░ 25% (1h 15m / 5h) │ Weekly █████████░ 86% (6d 29m / 7d)",
   );
 });
 

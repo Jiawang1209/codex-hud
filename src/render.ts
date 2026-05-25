@@ -115,8 +115,9 @@ function formatProgress(
   const empty = width - filled;
   const bar = `${config.colors.barFilled.repeat(filled)}${config.colors.barEmpty.repeat(empty)}`;
   const label = kind === "usage" && progress.windowMinutes ? "Usage" : progress.label;
-  const windowText = kind === "usage" && progress.windowMinutes
-    ? ` (${formatConsumedWindow(percent, progress.windowMinutes)} / ${progress.label})`
+  const limitText = kind === "usage" ? progress.label : formatDurationMinutes(progress.windowMinutes ?? 0);
+  const windowText = (kind === "usage" || kind === "weekly") && progress.windowMinutes
+    ? ` (${formatConsumedWindow(percent, progress.windowMinutes)} / ${limitText})`
     : "";
   const labelColor = config.colors[kind];
   return `${styleText(label, labelColor, options)} ${colorizeBar(bar, percent, config, options)} ${colorizeBar(`${percent}%`, percent, config, options)}${windowText}`;
@@ -128,6 +129,16 @@ function formatConsumedWindow(percent: number, windowMinutes: number): string {
 
 function formatDurationMinutes(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
+  if (minutes >= 1440) {
+    const days = Math.floor(minutes / 1440);
+    const remainder = minutes % 1440;
+    const hours = Math.floor(remainder / 60);
+    const minuteRemainder = remainder % 60;
+    const parts = [`${days}d`];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minuteRemainder > 0 && hours === 0) parts.push(`${minuteRemainder}m`);
+    return parts.join(" ");
+  }
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
   return remainder === 0 ? `${hours}h` : `${hours}h ${remainder}m`;

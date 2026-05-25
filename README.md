@@ -69,7 +69,7 @@ Example output:
 
 ```text
 [gpt-5.5 medium] │ codex-hud git:(main*)
-Context ████░░░░░░ 42% │ Usage ███████░░░ 68% (3h 24m / 5h)
+Context ████░░░░░░ 42% │ Usage ███████░░░ 68% (3h 24m / 5h) │ Weekly █████████░ 86% (6d 29m / 7d)
 Todos 2/5 │ Exec active, Plan x2
 ```
 
