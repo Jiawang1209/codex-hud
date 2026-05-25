@@ -11,15 +11,115 @@ Codex HUD reads local Codex configuration, git metadata, and safe session-log me
 
 ## Install
 
+Follow these steps in order. If you already have Node.js/npm or Codex CLI installed, you can skip that step.
+
+### 1. Set Up Node.js And npm
+
+Codex HUD is distributed through npm and requires Node.js 18 or newer.
+
+macOS:
+
+```bash
+brew install node
+```
+
+Linux, Debian/Ubuntu:
+
+```bash
+sudo apt update
+sudo apt install -y nodejs npm
+```
+
+Windows, PowerShell:
+
+```powershell
+winget install OpenJS.NodeJS.LTS
+```
+
+You can also use `nvm`, NodeSource, or the installer from nodejs.org if that is how you usually manage Node.js.
+
+Check that npm is available:
+
+```bash
+npm --version
+```
+
+### 2. Install Codex CLI
+
+Codex HUD is built for Codex CLI. If `codex --version` already works, skip this step.
+
+The current official Codex CLI install paths are documented in the
+[OpenAI Codex README](https://github.com/openai/codex#installing-and-running-codex-cli).
+
+macOS or Linux:
+
+```bash
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
+```
+
+Windows, PowerShell:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://chatgpt.com/codex/install.ps1 | iex"
+```
+
+Cross-platform npm alternative:
+
+```bash
+npm install -g @openai/codex
+```
+
+macOS Homebrew alternative:
+
+```bash
+brew install --cask codex
+```
+
+Check that Codex CLI is available:
+
+```bash
+codex --version
+```
+
+### 3. Install Codex HUD
+
 Install the published package from npm:
 
 ```bash
 npm install -g @jiawang1209/codex-hud
+```
+
+Configure Codex CLI's built-in status line:
+
+```bash
+codex-hud setup
+codex
+```
+
+For the fuller native auto-launch flow where `codex` starts a patched Codex binary with the HUD command wired into the footer, install the local build prerequisites first.
+
+macOS:
+
+```bash
+brew install git rust tmux
+```
+
+Linux, Debian/Ubuntu:
+
+```bash
+sudo apt install -y git cargo tmux
+```
+
+Then run:
+
+```bash
 codex-hud install
 codex
 ```
 
-`codex-hud install` prepares the native Codex HUD bundle and installs a reversible `codex` shim, so you can keep launching Codex with the normal `codex` command.
+`codex-hud install` prepares the native Codex HUD bundle and installs a reversible `codex` shim, so you can keep launching Codex with the normal `codex` command. If `codex` still resolves to the official binary after `codex-hud install`, add `~/.local/bin` before the existing Codex location in `PATH`.
+
+The npm package and built-in Codex status-line setup work on Windows through Node.js. The current `codex-hud install` native auto-launch flow is aimed at macOS/Linux because it builds a patched Codex binary and installs a Unix-style `~/.local/bin/codex` shim.
 
 ## Install From Source
 
