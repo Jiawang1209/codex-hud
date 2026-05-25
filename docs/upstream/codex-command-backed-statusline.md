@@ -66,7 +66,7 @@ Example output:
 
 ```text
 [gpt-5.5 medium] │ codex-hud git:(main*)
-Context █████░░░░░ 45% │ Usage ██░░░░░░░░ 25% (1h 15m / 5h)
+Context █████░░░░░ 45% │ Usage ██░░░░░░░░ 25% (resets in 3h 17m)
 Todos 2/5 │ Exec active
 ```
 

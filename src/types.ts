@@ -2,6 +2,7 @@ export interface ProgressSnapshot {
   label: string;
   percent: number;
   windowMinutes?: number;
+  resetsAt?: number;
 }
 
 export interface GitSnapshot {

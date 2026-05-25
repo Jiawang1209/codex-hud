@@ -53,10 +53,12 @@ test("parseSessionJsonl extracts context, usage, tools, and todos without readin
           primary: {
             used_percent: 68,
             window_minutes: 300,
+            resets_at: 1779690908,
           },
           secondary: {
             used_percent: 86,
             window_minutes: 10080,
+            resets_at: 1780186910,
           },
         },
       },
@@ -66,8 +68,8 @@ test("parseSessionJsonl extracts context, usage, tools, and todos without readin
   const parsed = parseSessionJsonl(text);
 
   assert.deepEqual(parsed.context, { label: "Context", percent: 25 });
-  assert.deepEqual(parsed.usage, { label: "5h", percent: 68, windowMinutes: 300 });
-  assert.deepEqual(parsed.weekly, { label: "Weekly", percent: 86, windowMinutes: 10080 });
+  assert.deepEqual(parsed.usage, { label: "5h", percent: 68, windowMinutes: 300, resetsAt: 1779690908 });
+  assert.deepEqual(parsed.weekly, { label: "Weekly", percent: 86, windowMinutes: 10080, resetsAt: 1780186910 });
   assert.deepEqual(parsed.todos, {
     completed: 1,
     total: 3,

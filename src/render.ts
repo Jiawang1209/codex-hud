@@ -3,6 +3,7 @@ import type { HudSnapshot, ProgressSnapshot, ToolActivity } from "./types.js";
 
 export interface RenderOptions {
   color?: boolean;
+  now?: number;
   terminalWidth?: number;
 }
 
@@ -116,11 +117,28 @@ function formatProgress(
   const bar = `${config.colors.barFilled.repeat(filled)}${config.colors.barEmpty.repeat(empty)}`;
   const label = kind === "usage" && progress.windowMinutes ? "Usage" : progress.label;
   const limitText = kind === "usage" ? progress.label : formatDurationMinutes(progress.windowMinutes ?? 0);
-  const windowText = (kind === "usage" || kind === "weekly") && progress.windowMinutes
-    ? ` (${formatConsumedWindow(percent, progress.windowMinutes)} / ${limitText})`
+  const windowText = kind === "usage" || kind === "weekly"
+    ? formatLimitWindowText(progress, percent, limitText, options)
     : "";
   const labelColor = config.colors[kind];
   return `${styleText(label, labelColor, options)} ${colorizeBar(bar, percent, config, options)} ${colorizeBar(`${percent}%`, percent, config, options)}${windowText}`;
+}
+
+function formatLimitWindowText(
+  progress: ProgressSnapshot,
+  percent: number,
+  limitText: string,
+  options: RenderOptions,
+): string {
+  if (progress.resetsAt) {
+    const now = options.now ?? Date.now();
+    const remainingMinutes = Math.max(0, Math.round(((progress.resetsAt * 1000) - now) / 60000));
+    return ` (resets in ${formatDurationMinutes(remainingMinutes)})`;
+  }
+  if (progress.windowMinutes) {
+    return ` (${formatConsumedWindow(percent, progress.windowMinutes)} / ${limitText})`;
+  }
+  return "";
 }
 
 function formatConsumedWindow(percent: number, windowMinutes: number): string {

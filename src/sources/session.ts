@@ -36,10 +36,12 @@ interface RolloutLine {
       primary?: {
         used_percent?: number;
         window_minutes?: number;
+        resets_at?: number;
       } | null;
       secondary?: {
         used_percent?: number;
         window_minutes?: number;
+        resets_at?: number;
       } | null;
     };
   };
@@ -123,6 +125,7 @@ export function parseSessionJsonl(text: string, options: ParseSessionOptions = {
           label: formatRateLimitWindow(primary?.window_minutes),
           percent: primary.used_percent,
           windowMinutes: validPositiveNumber(primary?.window_minutes) ? primary.window_minutes : undefined,
+          resetsAt: validPositiveNumber(primary?.resets_at) ? primary.resets_at : undefined,
         };
       }
 
@@ -135,6 +138,7 @@ export function parseSessionJsonl(text: string, options: ParseSessionOptions = {
           label: "Weekly",
           percent: secondary.used_percent,
           windowMinutes,
+          resetsAt: validPositiveNumber(secondary?.resets_at) ? secondary.resets_at : undefined,
         };
       }
     }

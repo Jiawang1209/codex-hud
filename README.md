@@ -4,7 +4,7 @@ Codex HUD is a terminal heads-up display for Codex CLI sessions. It surfaces the
 
 ```text
 [gpt-5.5 medium] │ codex-hud git:(main*)
-Context ████░░░░░░ 42% │ Usage ███████░░░ 68% (3h 24m / 5h) │ Weekly █████████░ 86% (6d 29m / 7d)
+Context ████░░░░░░ 42% │ Usage ███████░░░ 68% (resets in 3h 17m) │ Weekly █████████░ 86% (resets in 6d 10h)
 Todos 2/5 │ Exec active, Plan x2
 ```
 

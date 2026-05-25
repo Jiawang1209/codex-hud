@@ -12,7 +12,7 @@ The patch adds support for a `command:` item in `tui.status_line`. When present,
 
 ```text
 [gpt-5.5 medium] │ codex-hud git:(feat/codex-hud-mvp*)
-Context ███░░░░░░░ 31% │ Usage ░░░░░░░░░░ 0% (0m / 5h)
+Context ███░░░░░░░ 31% │ Usage ░░░░░░░░░░ 0% (resets in 4h 58m)
 Todos 0/4 │ Stdin x5, Exec active
 ```
 

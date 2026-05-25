@@ -38,6 +38,7 @@ test("renderHud renders compact snapshot with core signals", () => {
 test("renderHud renders expanded snapshot across multiple lines", () => {
   const output = renderHud({
     config: { ...DEFAULT_CONFIG, layout: "expanded" },
+    options: { now: 1779671288 * 1000 },
     snapshot: {
       model: "Opus",
       cwd: "/tmp/codex-hud",
@@ -49,8 +50,8 @@ test("renderHud renders expanded snapshot across multiple lines", () => {
         behind: 0,
       },
       context: { label: "Context", percent: 45 },
-      usage: { label: "5h", percent: 25, windowMinutes: 300 },
-      weekly: { label: "Weekly", percent: 86, windowMinutes: 10080 },
+      usage: { label: "5h", percent: 25, windowMinutes: 300, resetsAt: 1779680908 },
+      weekly: { label: "Weekly", percent: 86, windowMinutes: 10080, resetsAt: 1780221688 },
       tools: [],
       todos: { completed: 0, total: 0 },
       warnings: [],
@@ -59,7 +60,7 @@ test("renderHud renders expanded snapshot across multiple lines", () => {
 
   assert.equal(
     output,
-    "[Opus] │ my-project git:(main*)\nContext █████░░░░░ 45% │ Usage ███░░░░░░░ 25% (1h 15m / 5h) │ Weekly █████████░ 86% (6d 29m / 7d)",
+    "[Opus] │ my-project git:(main*)\nContext █████░░░░░ 45% │ Usage ███░░░░░░░ 25% (resets in 2h 40m) │ Weekly █████████░ 86% (resets in 6d 8h)",
   );
 });
 
