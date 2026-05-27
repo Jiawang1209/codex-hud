@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add Windows native shim support with `codex.cmd` and `codex-hud.cmd status` for command-backed HUD injection.
+- Document the difference between Codex CLI built-in status-line items and the exact `codex-hud status` renderer.
+
 ## 0.1.1
 
 - Clarify npm, source, and Marketplace installation paths in the README.

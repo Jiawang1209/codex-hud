@@ -52,3 +52,24 @@ test("createDoctorReport reports native bundle readiness", async () => {
   assert.match(report.lines.join("\n"), /patched Codex found/);
   assert.match(report.lines.join("\n"), /native status command configured/);
 });
+
+test("createDoctorReport detects a Windows cmd shim", async () => {
+  const report = await createDoctorReport({
+    resolveCodexPath: async () => "C:\\Users\\me\\bin\\codex.cmd",
+    resolveCodexHudPath: async () => "C:\\Users\\me\\bin\\codex-hud.cmd",
+    readCodexVersion: async () => "0.131.0",
+    codexHome: "C:\\Users\\me\\.codex",
+    shimPath: "C:\\Users\\me\\bin\\codex.cmd",
+    readTextFile: async () => [
+      "@echo off",
+      "REM codex-hud shim",
+      "codex-hud.cmd native --codex \"C:\\Users\\me\\codex.exe\" -- %*",
+      "",
+    ].join("\n"),
+    pathExists: async () => true,
+  });
+
+  assert.equal(report.codexShim.installed, true);
+  assert.equal(report.patchedCodex.path, "C:\\Users\\me\\codex.exe");
+  assert.equal(report.nativeStatusCommand.configured, true);
+});

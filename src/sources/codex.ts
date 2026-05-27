@@ -128,12 +128,12 @@ export async function createDoctorReport(deps: DoctorDeps = {}): Promise<DoctorR
   const version = codexPath ? await (deps.readCodexVersion ?? readCodexVersion)() : undefined;
   const exists = deps.pathExists ?? pathExists;
   const homeExists = await exists(codexHome);
-  const shimPath = deps.shimPath ?? path.join(defaultShimBinDir(), "codex");
+  const shimPath = deps.shimPath ?? path.join(defaultShimBinDir(), process.platform === "win32" ? "codex.cmd" : "codex");
   const shimText = await (deps.readTextFile ?? readOptionalText)(shimPath);
   const shimInstalled = Boolean(shimText?.includes("codex-hud shim"));
   const patchedCodexPath = parseShimCodexPath(shimText) ?? resolveNativeCodexPath();
   const patchedCodexFound = await exists(patchedCodexPath);
-  const nativeStatusCommandConfigured = Boolean(shimText?.includes("codex-hud native"));
+  const nativeStatusCommandConfigured = Boolean(shimText && /codex-hud(?:\.cmd)?\s+native/.test(shimText));
   const lines: string[] = [];
 
   if (codexPath) {

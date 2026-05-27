@@ -32,6 +32,18 @@ test("buildInstallPlan points at patched Codex binary and shim destination", () 
   assert.equal(plan.shimPath, "/tmp/bin/codex");
 });
 
+test("buildInstallPlan points at Windows patched Codex binary and cmd shim", () => {
+  const plan = buildInstallPlan({
+    codexSource: "C:\\Users\\me\\openai-codex",
+    binDir: "C:\\Users\\me\\bin",
+    dryRun: true,
+    platform: "win32",
+  });
+
+  assert.equal(plan.codexBinary, "C:\\Users\\me\\openai-codex/codex-rs/target/debug/codex.exe");
+  assert.equal(plan.shimPath, "C:\\Users\\me\\bin/codex.cmd");
+});
+
 test("buildInstallPlan applies bundled Codex patch before building", () => {
   const plan = buildInstallPlan({
     codexSource: "/tmp/openai-codex",

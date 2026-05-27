@@ -14,6 +14,7 @@ export interface NativeOptions {
 export interface ShimOptions {
   binDir?: string;
   codexPath?: string;
+  platform?: NodeJS.Platform;
 }
 
 export interface ShimResult {
@@ -27,6 +28,7 @@ export interface RemoveShimResult {
 }
 
 const HUD_STATUS_LINE_CONFIG = 'tui.status_line=["command: codex-hud status"]';
+const WINDOWS_HUD_STATUS_LINE_CONFIG = 'tui.status_line=["command: codex-hud.cmd status"]';
 const SHIM_MARKER = "codex-hud shim";
 
 export function parseNativeArgs(args: string[]): NativeOptions {
@@ -71,8 +73,12 @@ export function parseShimArgs(args: string[]): ShimOptions {
   return { binDir, codexPath };
 }
 
-export function buildNativeCodexArgs(codexArgs: string[]): string[] {
-  return ["-c", HUD_STATUS_LINE_CONFIG, ...codexArgs];
+export function buildNativeCodexArgs(
+  codexArgs: string[],
+  options: Pick<ShimOptions, "platform"> = {},
+): string[] {
+  const statusLineConfig = isWindows(options.platform) ? WINDOWS_HUD_STATUS_LINE_CONFIG : HUD_STATUS_LINE_CONFIG;
+  return ["-c", statusLineConfig, ...codexArgs];
 }
 
 export function resolveNativeCodexPath(explicitPath?: string): string {
@@ -109,7 +115,16 @@ export function defaultShimBinDir(): string {
   return path.join(os.homedir(), ".local", "bin");
 }
 
-export function buildShimScript(options: { codexPath: string }): string {
+export function buildShimScript(options: { codexPath: string; platform?: NodeJS.Platform }): string {
+  if (isWindows(options.platform)) {
+    return [
+      "@echo off",
+      `REM ${SHIM_MARKER}`,
+      `codex-hud.cmd native --codex ${quoteCmdArg(options.codexPath)} -- %*`,
+      "",
+    ].join("\r\n");
+  }
+
   return [
     "#!/bin/sh",
     `# ${SHIM_MARKER}`,
@@ -120,9 +135,9 @@ export function buildShimScript(options: { codexPath: string }): string {
 
 export async function installCodexShim(options: ShimOptions = {}): Promise<ShimResult> {
   const binDir = options.binDir ?? defaultShimBinDir();
-  const shimPath = path.join(binDir, "codex");
+  const shimPath = path.join(binDir, isWindows(options.platform) ? "codex.cmd" : "codex");
   const codexPath = resolveNativeCodexPath(options.codexPath);
-  const script = buildShimScript({ codexPath });
+  const script = buildShimScript({ codexPath, platform: options.platform });
 
   await mkdir(binDir, { recursive: true });
   const existing = await readOptionalFile(shimPath);
@@ -140,9 +155,9 @@ export async function installCodexShim(options: ShimOptions = {}): Promise<ShimR
   return { changed: true, path: shimPath };
 }
 
-export async function removeCodexShim(options: Pick<ShimOptions, "binDir"> = {}): Promise<RemoveShimResult> {
+export async function removeCodexShim(options: Pick<ShimOptions, "binDir" | "platform"> = {}): Promise<RemoveShimResult> {
   const binDir = options.binDir ?? defaultShimBinDir();
-  const shimPath = path.join(binDir, "codex");
+  const shimPath = path.join(binDir, isWindows(options.platform) ? "codex.cmd" : "codex");
   const existing = await readOptionalFile(shimPath);
   if (existing === undefined || !existing.includes(SHIM_MARKER)) {
     return { path: shimPath, removed: false };
@@ -150,6 +165,14 @@ export async function removeCodexShim(options: Pick<ShimOptions, "binDir"> = {})
 
   await rm(shimPath, { force: true });
   return { path: shimPath, removed: true };
+}
+
+function isWindows(platform: NodeJS.Platform | undefined): boolean {
+  return (platform ?? process.platform) === "win32";
+}
+
+function quoteCmdArg(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
 }
 
 async function readOptionalFile(filePath: string): Promise<string | undefined> {

@@ -77,18 +77,26 @@ Install the package:
 npm install -g @jiawang1209/codex-hud
 ```
 
-Configure Codex CLI's built-in status line:
+Install the native HUD adapter and launch Codex:
 
 ```bash
-codex-hud setup
+codex-hud install
+codex-hud doctor
 codex
 ```
 
-This is the safest default path. It uses Codex CLI's supported native status-line items.
+This is the recommended path on macOS, Linux, and Windows. The command is the same on each platform; `codex-hud install` chooses the right shim internally:
+
+| Platform | Shim | Footer command |
+| --- | --- | --- |
+| macOS/Linux | `codex` | `codex-hud status` |
+| Windows | `codex.cmd` | `codex-hud.cmd status` |
+
+After installation, the bottom footer uses the same renderer as `codex-hud status`, so the style and rate-limit data match across macOS and Windows.
 
 ## Native Auto-Launch
 
-For the fuller HUD experience, `codex-hud install` builds a patched Codex CLI adapter and installs a reversible `codex` shim. After that, the normal `codex` command launches Codex with `codex-hud status` wired into the footer.
+`codex-hud install` builds a patched Codex CLI adapter and installs a reversible `codex` shim. After that, the normal `codex` command launches Codex with the Codex HUD renderer wired into the footer.
 
 macOS prerequisites:
 
@@ -102,16 +110,34 @@ Linux, Debian/Ubuntu prerequisites:
 sudo apt install -y git cargo tmux
 ```
 
+Windows, PowerShell prerequisites:
+
+```powershell
+winget install Git.Git Rustlang.Rustup
+```
+
 Install and launch:
 
 ```bash
 codex-hud install
+codex-hud doctor
 codex
 ```
 
-If `codex` still resolves to the official binary after install, put `~/.local/bin` before the existing Codex binary in `PATH`.
+If `codex` still resolves to the official binary after install, put the shim directory before the existing Codex binary in `PATH`.
 
-Windows supports the npm package and `codex-hud setup` through Node.js. The current native auto-launch flow is aimed at macOS/Linux because it builds a patched Codex binary and writes a Unix-style `~/.local/bin/codex` shim.
+On Windows, `codex-hud install` writes `codex.cmd` and injects `codex-hud.cmd status` so PowerShell execution policy does not block npm's `.ps1` shim. If `codex` still resolves to the official binary, put the shim directory before the existing Codex binary in `PATH`, or pass `--bin-dir <path>` to a directory that is already on `PATH`.
+
+## Built-In Status Line Fallback
+
+If you cannot build the native adapter, configure Codex CLI's built-in status line instead:
+
+```bash
+codex-hud setup
+codex
+```
+
+This fallback uses Codex CLI's supported native status-line items. It is useful, but it is not the full Codex HUD renderer, so the style and rate-limit percentages can differ from `codex-hud status`.
 
 ## HUD Pane Mode
 

@@ -14,6 +14,7 @@ codex
 - applies the bundled command-backed status-line patch
 - builds the patched Codex binary
 - installs a reversible `codex` shim in `~/.local/bin`
+- on Windows, writes `codex.cmd` and uses `codex-hud.cmd status` to avoid PowerShell `.ps1` execution-policy blocks
 
 After that, users run `codex` normally and Codex HUD is injected into the native Codex footer.
 
@@ -32,6 +33,14 @@ codex-hud install --codex-source ~/src/openai-codex --bin-dir ~/.local/bin
 ```
 
 Use this when you already keep a Codex source checkout somewhere else or need a custom shim directory.
+
+Windows PowerShell example:
+
+```powershell
+codex-hud install --bin-dir "$env:USERPROFILE\.local\bin"
+```
+
+Make sure the chosen directory appears before the official Codex CLI directory in `PATH`.
 
 ## Fallback Without Native Adapter
 

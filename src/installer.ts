@@ -12,6 +12,7 @@ export interface ProductInstallOptions {
   dryRun: boolean;
   codexSource?: string;
   binDir?: string;
+  platform?: NodeJS.Platform;
 }
 
 export interface ProductInstallPlan {
@@ -51,14 +52,17 @@ export function defaultCodexSource(): string {
 }
 
 export function buildInstallPlan(options: ProductInstallOptions): ProductInstallPlan {
+  const platform = options.platform ?? process.platform;
   const codexSource = options.codexSource ?? defaultCodexSource();
-  const codexBinary = path.join(codexSource, "codex-rs", "target", "debug", "codex");
+  const codexBinaryName = platform === "win32" ? "codex.exe" : "codex";
+  const codexBinary = path.join(codexSource, "codex-rs", "target", "debug", codexBinaryName);
   const binDir = options.binDir ?? defaultShimBinDir();
+  const shimName = platform === "win32" ? "codex.cmd" : "codex";
 
   return {
     codexSource,
     codexBinary,
-    shimPath: path.join(binDir, "codex"),
+    shimPath: path.join(binDir, shimName),
     commands: [
       ["git", "clone", "--depth", "1", "--branch", "rust-v0.131.0", "https://github.com/openai/codex.git", codexSource],
       ["git", "apply", "patches/codex-cli-command-statusline.patch"],
@@ -95,7 +99,7 @@ export async function installProduct(options: ProductInstallOptions): Promise<nu
   const buildCode = await spawnInherited("cargo", ["build", "-p", "codex-cli"], path.join(plan.codexSource, "codex-rs"));
   if (buildCode !== 0) return buildCode;
 
-  const shim = await installCodexShim({ binDir: options.binDir, codexPath: plan.codexBinary });
+  const shim = await installCodexShim({ binDir: options.binDir, codexPath: plan.codexBinary, platform: options.platform });
   const action = shim.changed ? "installed" : "already installed";
   process.stdout.write(`codex-hud: native Codex adapter ready at ${plan.codexBinary}\n`);
   process.stdout.write(`codex-hud: codex shim ${action} at ${shim.path}\n`);
