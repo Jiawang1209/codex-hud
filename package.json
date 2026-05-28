@@ -1,6 +1,6 @@
 {
   "name": "@jiawang1209/codex-hud",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Real-time terminal HUD for Codex CLI and Agent CLI sessions.",
   "type": "module",
   "homepage": "https://github.com/Jiawang1209/codex-hud",
