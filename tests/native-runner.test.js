@@ -10,6 +10,7 @@ import {
   installCodexShim,
   parseNativeArgs,
   removeCodexShim,
+  resolveNativeCodexPath,
 } from "../dist/native-runner.js";
 
 test("parseNativeArgs forwards Codex args after --", () => {
@@ -66,6 +67,17 @@ test("defaultShimBinDir uses npm global shim directory on Windows", () => {
       platform: "win32",
     }),
     "C:\\Users\\me\\AppData\\Roaming/npm",
+  );
+});
+
+test("resolveNativeCodexPath uses codex.exe on Windows by default", () => {
+  assert.equal(
+    resolveNativeCodexPath(undefined, {
+      env: {},
+      homeDir: "C:\\Users\\me",
+      platform: "win32",
+    }),
+    "C:\\Users\\me/Desktop/Github_repos/openai-codex/codex-rs/target/debug/codex.exe",
   );
 });
 

@@ -5,6 +5,7 @@
 - Add Windows native shim support with `codex.cmd` and `codex-hud.cmd status` for command-backed HUD injection.
 - Use npm's global shim directory as the default Windows shim target, with backup/restore for existing official `codex.cmd` shims.
 - Run command-backed status lines through `cmd.exe /C` on native Windows while keeping `sh -lc` for macOS, Linux, and WSL.
+- Fix Windows `doctor` command detection by using `where.exe`, `cmd.exe /C codex --version`, and `codex.exe` native binary defaults.
 - Document the difference between Codex CLI built-in status-line items and the exact `codex-hud status` renderer.
 
 ## 0.1.1

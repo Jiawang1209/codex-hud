@@ -15,6 +15,7 @@ export interface ShimOptions {
   binDir?: string;
   codexPath?: string;
   env?: NodeJS.ProcessEnv;
+  homeDir?: string;
   platform?: NodeJS.Platform;
 }
 
@@ -82,18 +83,24 @@ export function buildNativeCodexArgs(
   return ["-c", statusLineConfig, ...codexArgs];
 }
 
-export function resolveNativeCodexPath(explicitPath?: string): string {
+export function resolveNativeCodexPath(
+  explicitPath?: string,
+  options: Pick<ShimOptions, "env" | "homeDir" | "platform"> = {},
+): string {
   if (explicitPath) return explicitPath;
-  if (process.env.CODEX_HUD_CODEX_PATH) return process.env.CODEX_HUD_CODEX_PATH;
+  const env = options.env ?? process.env;
+  if (env.CODEX_HUD_CODEX_PATH) return env.CODEX_HUD_CODEX_PATH;
+  const platform = options.platform ?? process.platform;
+  const codexBinary = platform === "win32" ? "codex.exe" : "codex";
   return path.join(
-    os.homedir(),
+    options.homeDir ?? os.homedir(),
     "Desktop",
     "Github_repos",
     "openai-codex",
     "codex-rs",
     "target",
     "debug",
-    "codex",
+    codexBinary,
   );
 }
 
@@ -143,7 +150,11 @@ export async function installCodexShim(options: ShimOptions = {}): Promise<ShimR
   const binDir = options.binDir ?? defaultShimBinDir({ env: options.env, platform: options.platform });
   const shimPath = path.join(binDir, isWindows(options.platform) ? "codex.cmd" : "codex");
   const backupPath = backupShimPath(shimPath);
-  const codexPath = resolveNativeCodexPath(options.codexPath);
+  const codexPath = resolveNativeCodexPath(options.codexPath, {
+    env: options.env,
+    homeDir: options.homeDir,
+    platform: options.platform,
+  });
   const script = buildShimScript({ codexPath, platform: options.platform });
 
   await mkdir(binDir, { recursive: true });

@@ -43,6 +43,8 @@ export interface DoctorReport {
 }
 
 export interface DoctorDeps {
+  env?: NodeJS.ProcessEnv;
+  platform?: NodeJS.Platform;
   resolveCodexPath?: () => Promise<string | undefined>;
   readCodexVersion?: () => Promise<string | undefined>;
   resolveCodexHudPath?: () => Promise<string | undefined>;
@@ -73,33 +75,62 @@ export async function readCodexInfo(config?: HudConfig): Promise<CodexInfo> {
   };
 }
 
-export async function resolveCodexPath(): Promise<string | undefined> {
+export interface CommandInvocation {
+  command: string;
+  args: string[];
+}
+
+export function resolveCommandArgs(commandName: string, platform: NodeJS.Platform = process.platform): CommandInvocation {
+  if (platform === "win32") {
+    return {
+      command: "where.exe",
+      args: [commandName],
+    };
+  }
+  return {
+    command: "sh",
+    args: ["-c", `command -v ${shellCommandName(commandName)}`],
+  };
+}
+
+export function versionCommandArgs(commandName: string, platform: NodeJS.Platform = process.platform): CommandInvocation {
+  if (platform === "win32") {
+    return {
+      command: "cmd.exe",
+      args: ["/C", commandName, "--version"],
+    };
+  }
+  return {
+    command: commandName,
+    args: ["--version"],
+  };
+}
+
+export async function resolveCodexPath(platform: NodeJS.Platform = process.platform): Promise<string | undefined> {
+  return await resolveCommandPath("codex", platform);
+}
+
+export async function resolveCodexHudPath(platform: NodeJS.Platform = process.platform): Promise<string | undefined> {
+  return await resolveCommandPath("codex-hud", platform);
+}
+
+async function resolveCommandPath(commandName: string, platform: NodeJS.Platform): Promise<string | undefined> {
+  const invocation = resolveCommandArgs(commandName, platform);
   try {
-    const { stdout } = await execFileAsync("sh", ["-c", "command -v codex"], {
+    const { stdout } = await execFileAsync(invocation.command, invocation.args, {
       timeout: 1000,
       encoding: "utf8",
     });
-    return stdout.trim() || undefined;
+    return firstOutputLine(stdout);
   } catch {
     return undefined;
   }
 }
 
-export async function resolveCodexHudPath(): Promise<string | undefined> {
+export async function readCodexVersion(platform: NodeJS.Platform = process.platform): Promise<string | undefined> {
+  const invocation = versionCommandArgs("codex", platform);
   try {
-    const { stdout } = await execFileAsync("sh", ["-c", "command -v codex-hud"], {
-      timeout: 1000,
-      encoding: "utf8",
-    });
-    return stdout.trim() || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-export async function readCodexVersion(): Promise<string | undefined> {
-  try {
-    const { stdout } = await execFileAsync("codex", ["--version"], {
+    const { stdout } = await execFileAsync(invocation.command, invocation.args, {
       timeout: 1000,
       encoding: "utf8",
     });
@@ -122,16 +153,19 @@ export function parseCodexConfigText(text: string): Pick<CodexInfo, "model" | "r
 }
 
 export async function createDoctorReport(deps: DoctorDeps = {}): Promise<DoctorReport> {
+  const platform = deps.platform ?? process.platform;
+  const env = deps.env ?? process.env;
   const codexHome = deps.codexHome ?? getCodexHome();
-  const codexPath = await (deps.resolveCodexPath ?? resolveCodexPath)();
-  const codexHudPath = await (deps.resolveCodexHudPath ?? resolveCodexHudPath)();
-  const version = codexPath ? await (deps.readCodexVersion ?? readCodexVersion)() : undefined;
+  const codexPath = await (deps.resolveCodexPath ?? (() => resolveCodexPath(platform)))();
+  const codexHudPath = await (deps.resolveCodexHudPath ?? (() => resolveCodexHudPath(platform)))();
+  const version = codexPath ? await (deps.readCodexVersion ?? (() => readCodexVersion(platform)))() : undefined;
   const exists = deps.pathExists ?? pathExists;
   const homeExists = await exists(codexHome);
-  const shimPath = deps.shimPath ?? path.join(defaultShimBinDir(), process.platform === "win32" ? "codex.cmd" : "codex");
+  const shimPath = deps.shimPath ?? path.join(defaultShimBinDir({ env, platform }), platform === "win32" ? "codex.cmd" : "codex");
   const shimText = await (deps.readTextFile ?? readOptionalText)(shimPath);
   const shimInstalled = Boolean(shimText?.includes("codex-hud shim"));
-  const patchedCodexPath = parseShimCodexPath(shimText) ?? resolveNativeCodexPath();
+  const patchedCodexPath = parseShimCodexPath(shimText)
+    ?? resolveNativeCodexPath(undefined, { env, homeDir: nativeHomeDir(env, platform), platform });
   const patchedCodexFound = await exists(patchedCodexPath);
   const nativeStatusCommandConfigured = Boolean(shimText && /codex-hud(?:\.cmd)?\s+native/.test(shimText));
   const lines: string[] = [];
@@ -203,6 +237,21 @@ function parseShimCodexPath(text: string | undefined): string | undefined {
   if (!text) return undefined;
   const match = text.match(/--codex\s+(?:"([^"]+)"|'([^']+)'|([^\s]+))/);
   return match?.[1] ?? match?.[2] ?? match?.[3];
+}
+
+function firstOutputLine(text: string): string | undefined {
+  return text.split(/\r?\n/).map((line) => line.trim()).find(Boolean);
+}
+
+function shellCommandName(commandName: string): string {
+  return commandName.replace(/'/g, "'\\''");
+}
+
+function nativeHomeDir(env: NodeJS.ProcessEnv, platform: NodeJS.Platform): string | undefined {
+  if (platform === "win32") {
+    return env.USERPROFILE;
+  }
+  return undefined;
 }
 
 async function readCodexConfigText(codexHome: string): Promise<string | undefined> {

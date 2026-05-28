@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createDoctorReport } from "../dist/sources/codex.js";
+import {
+  createDoctorReport,
+  resolveCommandArgs,
+  versionCommandArgs,
+} from "../dist/sources/codex.js";
 
 test("createDoctorReport reports missing codex binary", async () => {
   const report = await createDoctorReport({
@@ -72,4 +76,45 @@ test("createDoctorReport detects a Windows cmd shim", async () => {
   assert.equal(report.codexShim.installed, true);
   assert.equal(report.patchedCodex.path, "C:\\Users\\me\\codex.exe");
   assert.equal(report.nativeStatusCommand.configured, true);
+});
+
+test("resolveCommandArgs uses where.exe on Windows", () => {
+  assert.deepEqual(resolveCommandArgs("codex", "win32"), {
+    command: "where.exe",
+    args: ["codex"],
+  });
+  assert.deepEqual(resolveCommandArgs("codex", "linux"), {
+    command: "sh",
+    args: ["-c", "command -v codex"],
+  });
+});
+
+test("versionCommandArgs runs npm cmd shims through cmd.exe on Windows", () => {
+  assert.deepEqual(versionCommandArgs("codex", "win32"), {
+    command: "cmd.exe",
+    args: ["/C", "codex", "--version"],
+  });
+  assert.deepEqual(versionCommandArgs("codex", "linux"), {
+    command: "codex",
+    args: ["--version"],
+  });
+});
+
+test("createDoctorReport uses Windows defaults for shim and patched Codex paths", async () => {
+  const report = await createDoctorReport({
+    codexHome: "C:\\Users\\me\\.codex",
+    env: {
+      APPDATA: "C:\\Users\\me\\AppData\\Roaming",
+      USERPROFILE: "C:\\Users\\me",
+    },
+    platform: "win32",
+    readTextFile: async () => undefined,
+    resolveCodexHudPath: async () => "C:\\Users\\me\\AppData\\Roaming\\npm\\codex-hud.cmd",
+    resolveCodexPath: async () => "C:\\Users\\me\\AppData\\Roaming\\npm\\codex.cmd",
+    readCodexVersion: async () => "0.134.0",
+    pathExists: async () => false,
+  });
+
+  assert.equal(report.codexShim.path, "C:\\Users\\me\\AppData\\Roaming/npm/codex.cmd");
+  assert.equal(report.patchedCodex.path, "C:\\Users\\me/Desktop/Github_repos/openai-codex/codex-rs/target/debug/codex.exe");
 });
