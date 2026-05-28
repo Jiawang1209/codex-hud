@@ -14,7 +14,8 @@ codex
 - applies the bundled command-backed status-line patch
 - builds the patched Codex binary
 - installs a reversible `codex` shim in `~/.local/bin`
-- on Windows, writes `codex.cmd` and uses `codex-hud.cmd status` to avoid PowerShell `.ps1` execution-policy blocks
+- on Windows, writes `codex.cmd` in npm's global shim directory and uses `codex-hud.cmd status` to avoid PowerShell `.ps1` execution-policy blocks
+- backs up an existing official `codex.cmd` shim before replacing it, then restores that backup during `codex-hud uninstall-shim`
 
 After that, users run `codex` normally and Codex HUD is injected into the native Codex footer.
 
@@ -37,10 +38,11 @@ Use this when you already keep a Codex source checkout somewhere else or need a 
 Windows PowerShell example:
 
 ```powershell
-codex-hud install --bin-dir "$env:USERPROFILE\.local\bin"
+codex-hud install
+where codex
 ```
 
-Make sure the chosen directory appears before the official Codex CLI directory in `PATH`.
+`where codex` should list the Codex HUD shim first. Use `--bin-dir <path>` only when you want to install the shim into another directory that already appears early in `PATH`.
 
 ## Fallback Without Native Adapter
 

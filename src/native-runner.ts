@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { chmod, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -14,6 +14,7 @@ export interface NativeOptions {
 export interface ShimOptions {
   binDir?: string;
   codexPath?: string;
+  env?: NodeJS.ProcessEnv;
   platform?: NodeJS.Platform;
 }
 
@@ -111,7 +112,12 @@ export async function runNativeCodex(options: NativeOptions): Promise<number> {
   });
 }
 
-export function defaultShimBinDir(): string {
+export function defaultShimBinDir(options: Pick<ShimOptions, "env" | "platform"> = {}): string {
+  const platform = options.platform ?? process.platform;
+  const env = options.env ?? process.env;
+  if (platform === "win32" && env.APPDATA) {
+    return path.join(env.APPDATA, "npm");
+  }
   return path.join(os.homedir(), ".local", "bin");
 }
 
@@ -134,8 +140,9 @@ export function buildShimScript(options: { codexPath: string; platform?: NodeJS.
 }
 
 export async function installCodexShim(options: ShimOptions = {}): Promise<ShimResult> {
-  const binDir = options.binDir ?? defaultShimBinDir();
+  const binDir = options.binDir ?? defaultShimBinDir({ env: options.env, platform: options.platform });
   const shimPath = path.join(binDir, isWindows(options.platform) ? "codex.cmd" : "codex");
+  const backupPath = backupShimPath(shimPath);
   const codexPath = resolveNativeCodexPath(options.codexPath);
   const script = buildShimScript({ codexPath, platform: options.platform });
 
@@ -143,7 +150,10 @@ export async function installCodexShim(options: ShimOptions = {}): Promise<ShimR
   const existing = await readOptionalFile(shimPath);
   if (existing !== undefined) {
     if (!existing.includes(SHIM_MARKER)) {
-      throw new Error(`codex already exists at ${shimPath}`);
+      if (await readOptionalFile(backupPath) !== undefined) {
+        throw new Error(`codex already exists at ${shimPath} and backup already exists at ${backupPath}`);
+      }
+      await rename(shimPath, backupPath);
     }
     if (existing === script) {
       return { changed: false, path: shimPath };
@@ -156,14 +166,18 @@ export async function installCodexShim(options: ShimOptions = {}): Promise<ShimR
 }
 
 export async function removeCodexShim(options: Pick<ShimOptions, "binDir" | "platform"> = {}): Promise<RemoveShimResult> {
-  const binDir = options.binDir ?? defaultShimBinDir();
+  const binDir = options.binDir ?? defaultShimBinDir({ platform: options.platform });
   const shimPath = path.join(binDir, isWindows(options.platform) ? "codex.cmd" : "codex");
+  const backupPath = backupShimPath(shimPath);
   const existing = await readOptionalFile(shimPath);
   if (existing === undefined || !existing.includes(SHIM_MARKER)) {
     return { path: shimPath, removed: false };
   }
 
   await rm(shimPath, { force: true });
+  if (await readOptionalFile(backupPath) !== undefined) {
+    await rename(backupPath, shimPath);
+  }
   return { path: shimPath, removed: true };
 }
 
@@ -173,6 +187,10 @@ function isWindows(platform: NodeJS.Platform | undefined): boolean {
 
 function quoteCmdArg(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
+}
+
+function backupShimPath(shimPath: string): string {
+  return `${shimPath}.codex-hud-backup`;
 }
 
 async function readOptionalFile(filePath: string): Promise<string | undefined> {

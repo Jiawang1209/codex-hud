@@ -12,6 +12,7 @@ export interface ProductInstallOptions {
   dryRun: boolean;
   codexSource?: string;
   binDir?: string;
+  env?: NodeJS.ProcessEnv;
   platform?: NodeJS.Platform;
 }
 
@@ -56,7 +57,7 @@ export function buildInstallPlan(options: ProductInstallOptions): ProductInstall
   const codexSource = options.codexSource ?? defaultCodexSource();
   const codexBinaryName = platform === "win32" ? "codex.exe" : "codex";
   const codexBinary = path.join(codexSource, "codex-rs", "target", "debug", codexBinaryName);
-  const binDir = options.binDir ?? defaultShimBinDir();
+  const binDir = options.binDir ?? defaultShimBinDir({ env: options.env, platform });
   const shimName = platform === "win32" ? "codex.cmd" : "codex";
 
   return {
@@ -99,7 +100,12 @@ export async function installProduct(options: ProductInstallOptions): Promise<nu
   const buildCode = await spawnInherited("cargo", ["build", "-p", "codex-cli"], path.join(plan.codexSource, "codex-rs"));
   if (buildCode !== 0) return buildCode;
 
-  const shim = await installCodexShim({ binDir: options.binDir, codexPath: plan.codexBinary, platform: options.platform });
+  const shim = await installCodexShim({
+    binDir: options.binDir,
+    codexPath: plan.codexBinary,
+    env: options.env,
+    platform: options.platform,
+  });
   const action = shim.changed ? "installed" : "already installed";
   process.stdout.write(`codex-hud: native Codex adapter ready at ${plan.codexBinary}\n`);
   process.stdout.write(`codex-hud: codex shim ${action} at ${shim.path}\n`);

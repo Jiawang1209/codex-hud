@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import {
   buildInstallPlan,
   patchActionFromChecks,
@@ -44,6 +45,17 @@ test("buildInstallPlan points at Windows patched Codex binary and cmd shim", () 
   assert.equal(plan.shimPath, "C:\\Users\\me\\bin/codex.cmd");
 });
 
+test("buildInstallPlan defaults to the npm global shim directory on Windows", () => {
+  const plan = buildInstallPlan({
+    codexSource: "C:\\Users\\me\\openai-codex",
+    dryRun: true,
+    env: { APPDATA: "C:\\Users\\me\\AppData\\Roaming" },
+    platform: "win32",
+  });
+
+  assert.equal(plan.shimPath, "C:\\Users\\me\\AppData\\Roaming/npm/codex.cmd");
+});
+
 test("buildInstallPlan applies bundled Codex patch before building", () => {
   const plan = buildInstallPlan({
     codexSource: "/tmp/openai-codex",
@@ -58,4 +70,13 @@ test("patchActionFromChecks treats reverse-applicable patch as already installed
   assert.equal(patchActionFromChecks(true, false), "apply");
   assert.equal(patchActionFromChecks(false, true), "already-applied");
   assert.equal(patchActionFromChecks(false, false), "conflict");
+});
+
+test("bundled Codex patch runs command-backed status lines through cmd.exe on Windows", async () => {
+  const patch = await readFile("patches/codex-cli-command-statusline.patch", "utf8");
+
+  assert.match(patch, /cfg!\(windows\)/);
+  assert.match(patch, /Command::new\("cmd"\)/);
+  assert.match(patch, /\.arg\("\/C"\)/);
+  assert.match(patch, /Command::new\("sh"\)/);
 });

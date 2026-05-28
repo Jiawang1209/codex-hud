@@ -391,12 +391,16 @@ index e34fe46..a369367 100644
 +}
 +
 +fn status_line_command_output(command: &str, cwd: &Path) -> Option<Vec<Line<'static>>> {
-+    let output = Command::new("sh")
-+        .arg("-lc")
-+        .arg(command)
-+        .current_dir(cwd)
-+        .output()
-+        .ok()?;
++    let mut process = if cfg!(windows) {
++        let mut process = Command::new("cmd");
++        process.arg("/C").arg(command);
++        process
++    } else {
++        let mut process = Command::new("sh");
++        process.arg("-lc").arg(command);
++        process
++    };
++    let output = process.current_dir(cwd).output().ok()?;
 +
 +    if !output.status.success() {
 +        return None;

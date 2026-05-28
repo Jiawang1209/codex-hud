@@ -8,7 +8,7 @@ This repository currently tracks a local proof-of-concept patch against OpenAI C
 /Users/liuyue/Desktop/Github_repos/openai-codex
 ```
 
-The patch adds support for a `command:` item in `tui.status_line`. When present, Codex runs the command from the current session directory and renders stdout in the native bottom footer. Multi-line stdout is preserved, so `codex-hud status` can appear as a lower native HUD:
+The patch adds support for a `command:` item in `tui.status_line`. When present, Codex runs the command from the current session directory and renders stdout in the native bottom footer. It uses `sh -lc` on macOS/Linux/WSL and `cmd.exe /C` on native Windows. Multi-line stdout is preserved, so `codex-hud status` can appear as a lower native HUD:
 
 ```text
 [gpt-5.5 medium] │ codex-hud git:(feat/codex-hud-mvp*)

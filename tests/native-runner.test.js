@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import {
   buildNativeCodexArgs,
   buildShimScript,
+  defaultShimBinDir,
   installCodexShim,
   parseNativeArgs,
   removeCodexShim,
@@ -58,6 +59,16 @@ test("buildShimScript creates a Windows cmd wrapper that avoids the PowerShell p
   assert.match(script, /codex-hud\.cmd native --codex "C:\\Users\\me\\codex\.exe" -- %\*/);
 });
 
+test("defaultShimBinDir uses npm global shim directory on Windows", () => {
+  assert.equal(
+    defaultShimBinDir({
+      env: { APPDATA: "C:\\Users\\me\\AppData\\Roaming" },
+      platform: "win32",
+    }),
+    "C:\\Users\\me\\AppData\\Roaming/npm",
+  );
+});
+
 test("installCodexShim writes a reversible codex shim", async () => {
   const dir = await mkdtemp(path.join(tmpdir(), "codex-hud-shim-"));
 
@@ -100,16 +111,28 @@ test("installCodexShim writes codex.cmd on Windows", async () => {
   }
 });
 
-test("installCodexShim refuses to overwrite a non-codex-hud codex binary", async () => {
+test("installCodexShim backs up and replaces an existing official codex shim", async () => {
   const dir = await mkdtemp(path.join(tmpdir(), "codex-hud-shim-"));
 
   try {
-    await writeFile(path.join(dir, "codex"), "#!/bin/sh\necho official codex\n", "utf8");
+    const shimPath = path.join(dir, "codex.cmd");
+    const backupPath = path.join(dir, "codex.cmd.codex-hud-backup");
+    const officialShim = "@echo off\r\nnode codex.js %*\r\n";
+    await writeFile(shimPath, officialShim, "utf8");
 
-    await assert.rejects(
-      installCodexShim({ binDir: dir, codexPath: "/tmp/patched-codex" }),
-      /already exists/,
-    );
+    const result = await installCodexShim({
+      binDir: dir,
+      codexPath: "C:\\Users\\me\\codex.exe",
+      platform: "win32",
+    });
+
+    assert.equal(result.changed, true);
+    assert.match(await readFile(shimPath, "utf8"), /codex-hud\.cmd native/);
+    assert.equal(await readFile(backupPath, "utf8"), officialShim);
+
+    const removed = await removeCodexShim({ binDir: dir, platform: "win32" });
+    assert.equal(removed.removed, true);
+    assert.equal(await readFile(shimPath, "utf8"), officialShim);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

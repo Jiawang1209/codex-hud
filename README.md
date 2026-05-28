@@ -126,7 +126,37 @@ codex
 
 If `codex` still resolves to the official binary after install, put the shim directory before the existing Codex binary in `PATH`.
 
-On Windows, `codex-hud install` writes `codex.cmd` and injects `codex-hud.cmd status` so PowerShell execution policy does not block npm's `.ps1` shim. If `codex` still resolves to the official binary, put the shim directory before the existing Codex binary in `PATH`, or pass `--bin-dir <path>` to a directory that is already on `PATH`.
+On Windows, `codex-hud install` writes `codex.cmd` and injects `codex-hud.cmd status` so PowerShell execution policy does not block npm's `.ps1` shim. The default Windows shim directory is npm's global shim directory under `%APPDATA%\npm`. If an official `codex.cmd` already exists there, Codex HUD backs it up before installing its own shim and restores it during `codex-hud uninstall-shim`.
+
+### Windows: PowerShell/CMD and WSL
+
+Windows has two supported install styles. Keep them separate so the correct shim is first in `PATH`.
+
+PowerShell or CMD uses the native Windows `.cmd` shim:
+
+```powershell
+npm install -g @openai/codex
+npm install -g @jiawang1209/codex-hud
+codex-hud install
+where codex
+codex-hud doctor
+codex
+```
+
+`where codex` should list the Codex HUD shim first, usually under `C:\Users\<you>\AppData\Roaming\npm\codex.cmd`. This path launches `codex-hud.cmd status` in the footer. Use `codex-hud install --bin-dir <path>` only if you want a different shim directory.
+
+WSL uses the Linux shim inside WSL:
+
+```bash
+npm install -g @openai/codex
+npm install -g @jiawang1209/codex-hud
+codex-hud install
+which codex
+codex-hud doctor
+codex
+```
+
+`which codex` should point to the WSL/Linux shim, usually under `~/.local/bin/codex`. Do not mix the Windows `codex.cmd` path into WSL, and do not use the WSL shim from PowerShell.
 
 ## Built-In Status Line Fallback
 
