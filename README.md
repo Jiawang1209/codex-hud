@@ -77,97 +77,96 @@ Install the package:
 npm install -g @jiawang1209/codex-hud
 ```
 
-Install the native HUD adapter and launch Codex:
+Then install the native HUD adapter. This is the important step that makes the normal `codex` command use the full Codex HUD footer. `codex-hud setup` is only a fallback and does not install this adapter.
 
-```bash
-codex-hud install
-codex-hud doctor
-codex
-```
-
-This is the recommended path on macOS, Linux, and Windows. The command is the same on each platform; `codex-hud install` chooses the right shim internally:
-
-| Platform | Shim | Footer command |
+| Environment | Shim | Footer command |
 | --- | --- | --- |
-| macOS/Linux | `codex` | `codex-hud status` |
-| Windows | `codex.cmd` | `codex-hud.cmd status` |
+| macOS/Linux/WSL | `codex` | `codex-hud status` |
+| Windows PowerShell/CMD | `codex.cmd` | `codex-hud.cmd status` |
 
-After installation, the bottom footer uses the same renderer as `codex-hud status`, so the style and rate-limit data match across macOS and Windows.
+After `codex-hud install`, the bottom footer uses the same renderer as `codex-hud status`, so the style and rate-limit data match across macOS, Linux, WSL, and native Windows.
 
-## Native Auto-Launch
+### macOS or Linux
 
-`codex-hud install` builds a patched Codex CLI adapter and installs a reversible `codex` shim. After that, the normal `codex` command launches Codex with the Codex HUD renderer wired into the footer.
+Install prerequisites:
 
-macOS prerequisites:
+macOS:
 
 ```bash
 brew install git rust tmux
 ```
 
-Linux, Debian/Ubuntu prerequisites:
+Linux, Debian/Ubuntu:
 
 ```bash
 sudo apt install -y git cargo tmux
 ```
 
-Windows, PowerShell prerequisites:
+Install the native adapter and launch Codex:
+
+```bash
+codex-hud install
+codex-hud doctor
+codex
+```
+
+If `codex` still resolves to the official binary after install, put `~/.local/bin` before the existing Codex binary in `PATH`.
+
+### Windows PowerShell or CMD
+
+Use this path when your prompt shows Windows paths such as `C:\Users\<you>\...`.
+
+Install prerequisites:
 
 ```powershell
 winget install Git.Git Rustlang.Rustup
 ```
 
-Install and launch:
-
-```bash
-codex-hud install
-codex-hud doctor
-codex
-```
-
-If `codex` still resolves to the official binary after install, put the shim directory before the existing Codex binary in `PATH`.
-
-On Windows, `codex-hud install` writes `codex.cmd` and injects `codex-hud.cmd status` so PowerShell execution policy does not block npm's `.ps1` shim. The default Windows shim directory is npm's global shim directory under `%APPDATA%\npm`. If an official `codex.cmd` already exists there, Codex HUD backs it up before installing its own shim and restores it during `codex-hud uninstall-shim`.
-
-### Windows: PowerShell/CMD and WSL
-
-Windows has two supported install styles. Keep them separate so the correct shim is first in `PATH`.
-
-PowerShell or CMD uses the native Windows `.cmd` shim:
+Install the native adapter and launch Codex:
 
 ```powershell
-npm install -g @openai/codex
-npm install -g @jiawang1209/codex-hud
-codex-hud install
-where codex
-codex-hud doctor
-codex
+codex-hud.cmd install
+codex-hud.cmd doctor
+where.exe codex
+codex.cmd
 ```
 
-`where codex` should list the Codex HUD shim first, usually under `C:\Users\<you>\AppData\Roaming\npm\codex.cmd`. This path launches `codex-hud.cmd status` in the footer. Use `codex-hud install --bin-dir <path>` only if you want a different shim directory.
+`where.exe codex` should list the Codex HUD shim first, usually under `C:\Users\<you>\AppData\Roaming\npm\codex.cmd`. `codex-hud install` backs up an existing official `codex.cmd`, installs its own shim, and restores the backup during `codex-hud uninstall-shim`.
 
-WSL uses the Linux shim inside WSL:
+Do not use `codex-hud setup` for this goal. `setup` only configures Codex CLI's built-in status line and will not make `codex.cmd` use the full Codex HUD footer.
+
+### WSL
+
+Use this path when you are inside WSL Ubuntu/Debian and paths look like `/home/<you>/...`. Treat WSL as Linux, not as native Windows.
+
+Install prerequisites:
 
 ```bash
-npm install -g @openai/codex
-npm install -g @jiawang1209/codex-hud
+sudo apt update
+sudo apt install -y git cargo tmux
+```
+
+Install the native adapter and launch Codex:
+
+```bash
 codex-hud install
 which codex
 codex-hud doctor
 codex
 ```
 
-`which codex` should point to the WSL/Linux shim, usually under `~/.local/bin/codex`. Do not mix the Windows `codex.cmd` path into WSL, and do not use the WSL shim from PowerShell.
+`which codex` should point to the WSL/Linux shim, usually under `~/.local/bin/codex`. Do not put the Windows `codex.cmd` path into WSL, and do not use the WSL shim from PowerShell.
 
 ## Built-In Status Line Fallback
 
-If you cannot build the native adapter, configure Codex CLI's built-in status line instead:
+Use this only if you cannot build the native adapter. It does not make `codex` use the full Codex HUD renderer.
 
 ```bash
 codex-hud setup
 codex
 ```
 
-This fallback uses Codex CLI's supported native status-line items. It is useful, but it is not the full Codex HUD renderer, so the style and rate-limit percentages can differ from `codex-hud status`.
+This fallback configures Codex CLI's supported native status-line items. It is useful, but the style and rate-limit percentages can differ from `codex-hud status`.
 
 ## HUD Pane Mode
 
@@ -200,8 +199,8 @@ codex-hud run --terminal terminal
 | `codex-hud status` | Print one HUD snapshot. |
 | `codex-hud watch` | Refresh the HUD until interrupted. |
 | `codex-hud run` | Launch Codex with a persistent HUD pane. |
-| `codex-hud setup` | Configure Codex CLI's built-in status line. |
-| `codex-hud install` | Build the native adapter and install the reversible `codex` shim. |
+| `codex-hud install` | Recommended: build the native adapter and make `codex` use the full Codex HUD footer. |
+| `codex-hud setup` | Fallback only: configure Codex CLI's built-in status line without installing the full HUD adapter. |
 | `codex-hud native` | Launch a patched Codex binary with command-backed HUD output. |
 | `codex-hud doctor` | Check Codex, Node.js, shim, native adapter, and config readiness. |
 | `codex-hud config` | Print the effective Codex HUD config. |
@@ -259,13 +258,13 @@ cd codex-hud
 npm install
 npm run build
 npm link
-codex-hud setup
 ```
 
-For native auto-launch from source:
+Then follow the same environment-specific native install step as above:
 
 ```bash
 codex-hud install
+codex-hud doctor
 codex
 ```
 

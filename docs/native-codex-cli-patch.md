@@ -29,6 +29,12 @@ The patched binary is:
 /Users/liuyue/Desktop/Github_repos/openai-codex/codex-rs/target/debug/codex
 ```
 
+On native Windows, the patched binary is:
+
+```text
+C:\Users\<you>\Desktop\Github_repos\openai-codex\codex-rs\target\debug\codex.exe
+```
+
 ## Try it
 
 Use a command-backed status line override when launching the patched binary:
@@ -36,6 +42,12 @@ Use a command-backed status line override when launching the patched binary:
 ```sh
 /Users/liuyue/Desktop/Github_repos/openai-codex/codex-rs/target/debug/codex \
   -c 'tui.status_line=["command: codex-hud status"]'
+```
+
+On native Windows PowerShell/CMD, use the `.exe` binary and the `.cmd` HUD command:
+
+```powershell
+codex.exe -c 'tui.status_line=["command: codex-hud.cmd status"]'
 ```
 
 For a persistent local test, add this to `~/.codex/config.toml` and launch the patched binary:
